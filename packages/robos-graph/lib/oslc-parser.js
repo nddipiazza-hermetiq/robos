@@ -1,5 +1,12 @@
 'use strict';
 
+const SOURCE_EVIDENCE_CONTEXT = {
+  repository: 'robos:sourceRepository', path: 'robos:sourcePath',
+  line: { '@id': 'robos:sourceLine', '@type': 'xsd:integer' },
+  revision: 'robos:sourceRevision', sha256: 'robos:sourceHash',
+  workingTreeStatus: 'robos:workingTreeStatus',
+};
+
 const OSLC_CONTEXT = {
   oslc: 'http://open-services.net/ns/core#',
   oslc_am: 'http://open-services.net/ns/am#',
@@ -21,18 +28,13 @@ const OSLC_CONTEXT = {
     '@context': {
       predicate: { '@id': 'robos:predicate', '@type': '@vocab' },
       target: { '@id': 'robos:target', '@type': '@id' },
-      evidence: 'robos:evidence', note: 'dcterms:description',
+      evidence: { '@id': 'robos:evidence', '@container': '@set', '@context': SOURCE_EVIDENCE_CONTEXT }, note: 'dcterms:description',
       condition: 'robos:condition', status: 'robos:evidenceStatus',
     },
   },
   'robos:evidence': {
     '@id': 'robos:evidence', '@container': '@set',
-    '@context': {
-      repository: 'robos:sourceRepository', path: 'robos:sourcePath',
-      line: { '@id': 'robos:sourceLine', '@type': 'xsd:integer' },
-      revision: 'robos:sourceRevision', sha256: 'robos:sourceHash',
-      workingTreeStatus: 'robos:workingTreeStatus',
-    },
+    '@context': SOURCE_EVIDENCE_CONTEXT,
   },
 };
 
