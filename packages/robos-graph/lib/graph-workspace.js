@@ -342,7 +342,9 @@ class GraphWorkspace {
       // fields so a rehashed delta, conflict list or source baseline cannot lie
       // about the request. Callers may additionally pin the reviewed ID above.
       if (!proposal.request || !same(this.propose(proposal.request), proposal)) throw new Error('Proposal is inconsistent with its request; propose again');
-      if (fs.existsSync(this.file) && hash(this.read()) === hash(proposal.candidate) && same(this.state().extracted, proposal.extracted) && same(this.state().retired || [], proposal.retired)) return { changed: false, revision: hash(proposal.candidate) };
+      const packageWrites = this.packageWrites(proposal);
+      const packagesCurrent = packageWrites.every(([file, value]) => fs.existsSync(file) && (typeof value === 'string' ? fs.readFileSync(file, 'utf8') === value : same(JSON.parse(fs.readFileSync(file, 'utf8')), value)));
+      if (packagesCurrent && fs.existsSync(this.file) && hash(this.read()) === hash(proposal.candidate) && same(this.state().extracted, proposal.extracted) && same(this.state().retired || [], proposal.retired)) return { changed: false, revision: hash(proposal.candidate) };
       this.packageWrites(proposal); // Preflight metadata before publishing a journal.
       writeAtomic(this.journal, proposal);
       this.finish(proposal);
@@ -366,7 +368,7 @@ class GraphWorkspace {
     for (const p of [...packages.values()].sort((a, b) => a.id.localeCompare(b.id))) {
       const relative = `kgraphs/${p.id}/package.jsonld`;
       const envelope = metadata.packages[p.id] || {};
-      writes.push([path.join(this.root, relative), { '@context': doc['@context'], '@id': `urn:robos:package:${p.id}`, '@type': ['robos:KGraphPackage'], 'dcterms:title': p.title, 'robos:package': p.id, 'robos:namespace': p.namespace, ...envelope, 'robos:nodes': doc['robos:nodes'].filter(n => n['robos:package'] === p.id) }]);
+      writes.push([path.join(this.root, relative), { '@context': doc['@context'], '@id': `urn:robos:package:${p.id}`, '@type': ['robos:KGraphPackage'], 'dcterms:title': p.title, 'robos:package': p.id, 'robos:namespace': p.namespace, ...envelope, '@context': { ...envelope['@context'], ...doc['@context'] }, 'robos:nodes': doc['robos:nodes'].filter(n => n['robos:package'] === p.id) }]);
       catalog.push({ id: p.id, namespace: p.namespace, title: p.title, path: relative });
     }
     writes.push([path.join(this.root, 'kgraph.yaml'), manifestText(metadata.manifest, catalog, doc['dcterms:title'])]);

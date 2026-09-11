@@ -363,3 +363,20 @@ test('relationship evidence accepts string/object references and checks the actu
     assert.equal(validateDocument(doc(ws, [n, target])).conforms, false, JSON.stringify(n));
   }
 });
+
+
+test('package context upgrades retain local terms and do not leave stale RDF semantics on no-op refresh', t => {
+  const { ws } = fixture(t);
+  ws.apply(ws.propose({ document: doc(ws, [node()]) }));
+  const file = path.join(ws.root, 'kgraphs/organization/package.jsonld');
+  const envelope = JSON.parse(fs.readFileSync(file));
+  envelope['@context'] = { ...envelope['@context'], local: 'https://example.test/vocab#' };
+  delete envelope['@context']['robos:relationshipEvidence'];
+  fs.writeFileSync(file, serialize(envelope));
+  const p = ws.propose({ document: doc(ws, [node()]) });
+  assert.equal(ws.apply(p).changed, true);
+  const saved = JSON.parse(fs.readFileSync(file));
+  assert.equal(saved['@context'].local, 'https://example.test/vocab#');
+  assert.ok(saved['@context']['robos:relationshipEvidence']);
+  assert.equal(ws.apply(ws.propose({ document: doc(ws, [node()]) })).changed, false);
+});
