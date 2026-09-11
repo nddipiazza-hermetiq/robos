@@ -31,7 +31,21 @@
           "@id": "robos:target",
           "@type": "@id"
         },
-        "evidence": "robos:evidence",
+        "evidence": {
+          "@id": "robos:evidence",
+          "@container": "@set",
+          "@context": {
+            "repository": "robos:sourceRepository",
+            "path": "robos:sourcePath",
+            "line": {
+              "@id": "robos:sourceLine",
+              "@type": "xsd:integer"
+            },
+            "revision": "robos:sourceRevision",
+            "sha256": "robos:sourceHash",
+            "workingTreeStatus": "robos:workingTreeStatus"
+          }
+        },
         "note": "dcterms:description",
         "condition": "robos:condition",
         "status": "robos:evidenceStatus"
