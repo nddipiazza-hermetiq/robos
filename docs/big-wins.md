@@ -453,12 +453,548 @@ Modern developer machines are bogged down by dozens of heavyweight, disconnected
 **The RobOS Breakthrough:**
 > RobOS delivers a cohesive suite of **30+ native developer applications built with Electron and vanilla JavaScript (zero React/Vue/Angular bundle overhead)**, booting in milliseconds and natively connected to the SDLC Knowledge Graph.
 
-<div style="margin: 2rem 0; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; background: #0b101b; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
-  <img src="{{ '/assets/images/screenshots/robos-desktop.png' | relative_url }}" alt="RobOS Desktop and 30+ App Suite" class="robos-zoomable-img" style="display: block; width: 100%; height: auto;" />
-  <div style="padding: 0.75rem 1.25rem; font-size: 0.85rem; color: #94a3b8; border-top: 1px solid #1e293b; background: #0d1424; text-align: center;">
-    <strong>RobOS 30+ Native Developer Application Suite</strong>: Zero web-framework bloat covering daily planning, database management, API clients, Kubernetes, and autonomous agent governance. <em>(Click image to zoom full screen)</em>
+<!-- INTERACTIVE ROBOS APP LAUNCHER & MENU WIDGET -->
+<div class="robos-app-launcher-widget" style="margin: 2rem 0; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; background: #0b101b; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+  <!-- Window Header Bar -->
+  <div style="background: #0d1424; border-bottom: 1px solid #1e293b; padding: 0.75rem 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <span style="display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: #ef4444;"></span>
+      <span style="display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: #f59e0b;"></span>
+      <span style="display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: #10b981;"></span>
+      <span style="margin-left: 0.5rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.88rem; font-weight: 600; color: #e2e8f0;">
+        RobOS App Launcher & Menu &bull; 30+ Native Applications
+      </span>
+    </div>
+    <span style="font-family: 'Fira Code', monospace; font-size: 0.75rem; color: #00e5ff; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 9999px; padding: 2px 10px;">
+      ⚡ 0ms Web Framework Overhead &bull; Vanilla JS + Electron
+    </span>
+  </div>
+
+  <!-- Search & Category Filters -->
+  <div style="padding: 1.25rem 1.25rem 0.65rem; background: #0e1626; border-bottom: 1px solid #1a2333;">
+    <div style="position: relative; margin-bottom: 0.85rem;">
+      <input type="text" id="win8-app-search" placeholder="🔍 Search applications by name, package, or role (e.g. 'db', 'rest', 'agent', 'kube', 'planner')..." 
+             style="width: 100%; background: #070b13; border: 1px solid #1e293b; border-radius: 8px; padding: 0.65rem 1rem; color: #f8fafc; font-size: 0.9rem; outline: none; font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box;"
+             oninput="filterWin8Apps()" />
+    </div>
+    <div id="win8-cat-bar" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.85rem;">
+      <button class="win8-cat-btn active" onclick="selectWin8Cat(this, 'all')" style="cursor: pointer; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; font-family: 'Space Grotesk', sans-serif; background: #00e5ff; color: #070b13; border: 1px solid #00e5ff; transition: all 0.2s;">All (36)</button>
+      <button class="win8-cat-btn" onclick="selectWin8Cat(this, 'ai')" style="cursor: pointer; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; font-family: 'Space Grotesk', sans-serif; background: #111827; color: #cbd5e1; border: 1px solid #1e293b; transition: all 0.2s;">🤖 AI & Agents</button>
+      <button class="win8-cat-btn" onclick="selectWin8Cat(this, 'review')" style="cursor: pointer; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; font-family: 'Space Grotesk', sans-serif; background: #111827; color: #cbd5e1; border: 1px solid #1e293b; transition: all 0.2s;">📊 Architecture & Review</button>
+      <button class="win8-cat-btn" onclick="selectWin8Cat(this, 'data')" style="cursor: pointer; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; font-family: 'Space Grotesk', sans-serif; background: #111827; color: #cbd5e1; border: 1px solid #1e293b; transition: all 0.2s;">🗄️ Databases & Streams</button>
+      <button class="win8-cat-btn" onclick="selectWin8Cat(this, 'api')" style="cursor: pointer; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; font-family: 'Space Grotesk', sans-serif; background: #111827; color: #cbd5e1; border: 1px solid #1e293b; transition: all 0.2s;">📬 APIs & Contracts</button>
+      <button class="win8-cat-btn" onclick="selectWin8Cat(this, 'cloud')" style="cursor: pointer; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; font-family: 'Space Grotesk', sans-serif; background: #111827; color: #cbd5e1; border: 1px solid #1e293b; transition: all 0.2s;">🚀 Cloud & DevOps</button>
+      <button class="win8-cat-btn" onclick="selectWin8Cat(this, 'core')" style="cursor: pointer; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; font-family: 'Space Grotesk', sans-serif; background: #111827; color: #cbd5e1; border: 1px solid #1e293b; transition: all 0.2s;">🖥️ Core Desktop</button>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: #94a3b8; padding-bottom: 0.25rem;">
+      <span id="win8-app-count">Showing 36 of 36 applications</span>
+      <span>Click any card to explore its full guide</span>
+    </div>
+  </div>
+
+  <!-- Scrollable App Cards Grid -->
+  <div id="win8-apps-container" style="padding: 1.25rem; max-height: 540px; overflow-y: auto;">
+    <div id="win8-apps-grid" class="robos-apps-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.85rem;">
+
+      <!-- 1. Dev Central -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#dev-central-developer-command-center" class="robos-app-card win8-app-item" data-cat="core review" data-title="Dev Central" data-pkg="robos:dev-central" data-desc="Daily developer command center sprint burndown PR health blocker radar AI standup">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/dev-central.svg' | relative_url }}" alt="Dev Central" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Dev Central</div>
+          <span class="robos-app-pkg">robos:dev-central</span>
+          <p class="robos-app-desc">Daily developer command center: sprint burndown, PR health, blocker radar, and AI standup.</p>
+        </div>
+      </a>
+
+      <!-- 2. Agent Chat -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#agent-chat--vs-code-style-conversational-assistant" class="robos-app-card win8-app-item" data-cat="ai" data-title="Agent Chat" data-pkg="robos:agent-chat" data-desc="Conversational AI assistant multi-model switcher tool cards quick prompt popup">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/agent-chat.svg' | relative_url }}" alt="Agent Chat" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Agent Chat</div>
+          <span class="robos-app-pkg">robos:agent-chat</span>
+          <p class="robos-app-desc">Conversational AI assistant with multi-model switcher, live tool cards, and floating popup (Ctrl+Space).</p>
+        </div>
+      </a>
+
+      <!-- 3. PR Review Theater -->
+      <a href="{{ site.baseurl }}{% link pr-review-theater.md %}" class="robos-app-card win8-app-item" data-cat="review ai" data-title="PR Review Theater" data-pkg="robos:agent-code-review" data-desc="6-stage review cockpit anti-rubber-stamp knowledge checks sequence flows in-app file diffs IDE bridge">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/pr-review.svg' | relative_url }}" alt="PR Review Theater" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">PR Review Theater</div>
+          <span class="robos-app-pkg">robos:agent-code-review</span>
+          <p class="robos-app-desc">6-stage anti-rubber-stamp review cockpit: reviewer knowledge quizzes, sequence flows, diffs, and IDE bridge.</p>
+        </div>
+      </a>
+
+      <!-- 4. Knowledge Graph Explorer -->
+      <a href="{{ site.baseurl }}{% link big-wins/dual-state-knowledge-graph.md %}" class="robos-app-card win8-app-item" data-cat="review data" data-title="Knowledge Graph Explorer" data-pkg="robos:knowledge-graph" data-desc="Dual-State OSLC JSON-LD architecture browser SHACL validator living docs blast radius">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/schema-studio.svg' | relative_url }}" alt="Knowledge Graph Explorer" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Knowledge Graph Explorer</div>
+          <span class="robos-app-pkg">robos:knowledge-graph</span>
+          <p class="robos-app-desc">Dual-State OSLC JSON-LD architecture browser, SHACL validator, living documentation, and blast radius.</p>
+        </div>
+      </a>
+
+      <!-- 5. Relational DB Manager -->
+      <a href="{{ site.baseurl }}{% link big-wins/data-sources-management.md %}" class="robos-app-card win8-app-item" data-cat="data" data-title="Relational DB Manager" data-pkg="robos:db-manager" data-desc="SQL console postgres mysql oracle ER diagrams foreign keys DDL migrations dbeaver">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/db-manager.svg' | relative_url }}" alt="Relational DB Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Relational DB Manager</div>
+          <span class="robos-app-pkg">robos:db-manager</span>
+          <p class="robos-app-desc">DBeaver-grade SQL console, schema inspector, ER diagrams, and DDL migrations for PostgreSQL, MySQL, Oracle.</p>
+        </div>
+      </a>
+
+      <!-- 6. NoSQL DB Manager -->
+      <a href="{{ site.baseurl }}{% link big-wins/data-sources-management.md %}" class="robos-app-card win8-app-item" data-cat="data" data-title="NoSQL DB Manager" data-pkg="robos:nosql-manager" data-desc="MongoDB document viewer Redis key-value inspector TTL editor query console compass">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/nosql-manager.svg' | relative_url }}" alt="NoSQL DB Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">NoSQL DB Manager</div>
+          <span class="robos-app-pkg">robos:nosql-manager</span>
+          <p class="robos-app-desc">MongoDB document viewer, Redis key-value inspector, TTL editor, and real-time query console.</p>
+        </div>
+      </a>
+
+      <!-- 7. Data Sources Explorer -->
+      <a href="{{ site.baseurl }}{% link big-wins/data-sources-management.md %}" class="robos-app-card win8-app-item" data-cat="data" data-title="Data Sources Explorer" data-pkg="robos:data-sources" data-desc="Unified topology explorer databases kafka streaming topics aws s3 cloud storage query console">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/data-sources.svg' | relative_url }}" alt="Data Sources Explorer" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Data Sources Explorer</div>
+          <span class="robos-app-pkg">robos:data-sources</span>
+          <p class="robos-app-desc">Unified topology explorer linking databases, Kafka streaming topics, and S3 vaults with live query console.</p>
+        </div>
+      </a>
+
+      <!-- 8. REST API Client -->
+      <a href="{{ site.baseurl }}{% link big-wins/api-and-web-clients.md %}" class="robos-app-card win8-app-item" data-cat="api" data-title="REST API Client" data-pkg="robos:rest-client" data-desc="Git-backed plain text collections .bru Bruno postman insomnia assertions environments">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/rest-client.svg' | relative_url }}" alt="REST API Client" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">REST API Client</div>
+          <span class="robos-app-pkg">robos:rest-client</span>
+          <p class="robos-app-desc">Git-backed plain text collections (.bru), Bruno compatibility, environment matrices, and test assertions.</p>
+        </div>
+      </a>
+
+      <!-- 9. gRPC Client -->
+      <a href="{{ site.baseurl }}{% link big-wins/api-and-web-clients.md %}" class="robos-app-card win8-app-item" data-cat="api" data-title="gRPC Client" data-pkg="robos:grpc-client" data-desc="Protobuf dynamic server reflection streaming inspection unary bidi rpc test harness bloomrpc">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/grpc-client.svg' | relative_url }}" alt="gRPC Client" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">gRPC Client</div>
+          <span class="robos-app-pkg">robos:grpc-client</span>
+          <p class="robos-app-desc">Protobuf server reflection, streaming inspection, and unary/bidi RPC test harness without manual compilation.</p>
+        </div>
+      </a>
+
+      <!-- 10. GraphQL Client -->
+      <a href="{{ site.baseurl }}{% link big-wins/api-and-web-clients.md %}" class="robos-app-card win8-app-item" data-cat="api" data-title="GraphQL Client" data-pkg="robos:graphql-client" data-desc="Schema introspection query mutation composer variables editor graphiql altair">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/graphql-client.svg' | relative_url }}" alt="GraphQL Client" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">GraphQL Client</div>
+          <span class="robos-app-pkg">robos:graphql-client</span>
+          <p class="robos-app-desc">Interactive schema introspection, query/mutation composer, variable editor, and response visualizer.</p>
+        </div>
+      </a>
+
+      <!-- 11. Kube Studio -->
+      <a href="{{ site.baseurl }}{% link big-wins/declarative-gitops-synthesis.md %}" class="robos-app-card win8-app-item" data-cat="cloud" data-title="Kube Studio" data-pkg="robos:kube-studio" data-desc="Kubernetes clusters kind eks gke aks pods logs helm gitops argocd lens k9s">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/kube-studio.svg' | relative_url }}" alt="Kube Studio" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Kube Studio</div>
+          <span class="robos-app-pkg">robos:kube-studio</span>
+          <p class="robos-app-desc">Multi-cluster Kubernetes navigator for local Kind, EKS, GKE, and AKS with live pod log streaming and GitOps.</p>
+        </div>
+      </a>
+
+      <!-- 12. Remote Execution Studio -->
+      <a href="{{ site.baseurl }}{% link big-wins/remote-execution-studio.md %}" class="robos-app-card win8-app-item" data-cat="cloud" data-title="Remote Execution Studio" data-pkg="robos:remote-execution-studio" data-desc="REAPI v2 buildbarn nativelink distributed builds bazel buck2 CAS telemetry">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/remote-execution-studio.svg' | relative_url }}" alt="Remote Execution Studio" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Remote Execution Studio</div>
+          <span class="robos-app-pkg">robos:remote-execution-studio</span>
+          <p class="robos-app-desc">REAPI v2 distributed build cluster manager for Bazel and Buck2 with Buildbarn / NativeLink CAS telemetry.</p>
+        </div>
+      </a>
+
+      <!-- 13. Agents Manager -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#agents-manager--universal-ai-tool-connections-mcp" class="robos-app-card win8-app-item" data-cat="ai" data-title="Agents Manager" data-pkg="robos:agents-manager" data-desc="Orchestrate claude code google antigravity github copilot cli gemini sessions sandboxes">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/agents-manager.svg' | relative_url }}" alt="Agents Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Agents Manager</div>
+          <span class="robos-app-pkg">robos:agents-manager</span>
+          <p class="robos-app-desc">Orchestrate Claude Code, Google Antigravity, GitHub Copilot CLI, and Gemini agent sessions.</p>
+        </div>
+      </a>
+
+      <!-- 14. Task Planner -->
+      <a href="{{ site.baseurl }}{% link big-wins/interactive-task-planning.md %}" class="robos-app-card win8-app-item" data-cat="ai review" data-title="Task Planner" data-pkg="robos:task-planner" data-desc="AI task planning 66 templates domain web forms phased DAGs github jira sync">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/task-planner.svg' | relative_url }}" alt="Task Planner" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Task Planner</div>
+          <span class="robos-app-pkg">robos:task-planner</span>
+          <p class="robos-app-desc">AI-assisted project breakdown with 66+ domain web forms, phased execution DAGs, and GitHub/Jira sync.</p>
+        </div>
+      </a>
+
+      <!-- 15. Task Implementer -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#ai-agents" class="robos-app-card win8-app-item" data-cat="ai" data-title="Task Implementer" data-pkg="robos:task-implementer" data-desc="Autonomous multi-file code generator diff reviewer test runner atomic patch applier">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/task-implementer.svg' | relative_url }}" alt="Task Implementer" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Task Implementer</div>
+          <span class="robos-app-pkg">robos:task-implementer</span>
+          <p class="robos-app-desc">Autonomous multi-file code generator, diff reviewer, test execution runner, and atomic patch applier.</p>
+        </div>
+      </a>
+
+      <!-- 16. AI Prompt Studio -->
+      <a href="{{ site.baseurl }}{% link agent-tiers.md %}" class="robos-app-card win8-app-item" data-cat="ai" data-title="AI Prompt Studio" data-pkg="robos:ai-prompt" data-desc="Context-aware prompt engineering DSPy Bayesian optimization Caveman token compression">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/ai-prompt.svg' | relative_url }}" alt="AI Prompt Studio" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">AI Prompt Studio</div>
+          <span class="robos-app-pkg">robos:ai-prompt</span>
+          <p class="robos-app-desc">Context-aware prompt engineering with DSPy automated optimization and Caveman token compression.</p>
+        </div>
+      </a>
+
+      <!-- 17. MCP Manager -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#agents-manager--universal-ai-tool-connections-mcp" class="robos-app-card win8-app-item" data-cat="ai" data-title="MCP Manager" data-pkg="robos:mcp-manager" data-desc="Model Context Protocol server registry interactive tool testbench oauth connectors">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/mcp-manager.svg' | relative_url }}" alt="MCP Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">MCP Manager</div>
+          <span class="robos-app-pkg">robos:mcp-manager</span>
+          <p class="robos-app-desc">Model Context Protocol server registry, interactive tool testbench, and OAuth resource connection manager.</p>
+        </div>
+      </a>
+
+      <!-- 18. Context Manager -->
+      <a href="{{ site.baseurl }}{% link big-wins/dual-state-knowledge-graph.md %}#hierarchical-agent-context--multi-level-rules-inheritance-eliminating-duplicate-skills" class="robos-app-card win8-app-item" data-cat="ai" data-title="Context Manager" data-pkg="robos:context-manager" data-desc="Curate files web URLs git repos jira tickets hierarchical context rules">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/context-manager.svg' | relative_url }}" alt="Context Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Context Manager</div>
+          <span class="robos-app-pkg">robos:context-manager</span>
+          <p class="robos-app-desc">Curate files, web URLs, Git repos, and Jira tickets into high-signal, hierarchical AI agent context.</p>
+        </div>
+      </a>
+
+      <!-- 19. Skills Manager -->
+      <a href="{{ site.baseurl }}{% link robos-skills.md %}" class="robos-app-card win8-app-item" data-cat="ai" data-title="Skills Manager" data-pkg="robos:skills-manager" data-desc="Cross-agent AI skills marketplace claude codex antigravity gemini copilot">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/skills-manager.svg' | relative_url }}" alt="Skills Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Skills Manager</div>
+          <span class="robos-app-pkg">robos:skills-manager</span>
+          <p class="robos-app-desc">Cross-agent AI skills marketplace supporting Claude, Codex, Antigravity, and Gemini with verified schemas.</p>
+        </div>
+      </a>
+
+      <!-- 20. RobOS App Wizard -->
+      <a href="{{ site.baseurl }}{% link big-wins/kgraph-first-app-generation.md %}" class="robos-app-card win8-app-item" data-cat="review" data-title="RobOS App Wizard" data-pkg="robos:app-wizard" data-desc="Greenfield scaffolding brownfield ingestion 9 archetypes microservice front-end game">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/app-wizard.svg' | relative_url }}" alt="RobOS App Wizard" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">RobOS App Wizard</div>
+          <span class="robos-app-pkg">robos:app-wizard</span>
+          <p class="robos-app-desc">Greenfield scaffolding and brownfield codebase ingestion wizard across 9 multi-app archetypes.</p>
+        </div>
+      </a>
+
+      <!-- 21. Git Projects -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#git-projects-multi-repo-hub" class="robos-app-card win8-app-item" data-cat="review core" data-title="Git Projects" data-pkg="robos:git-projects" data-desc="Multi-repository hub Monaco editor terminal runners dev-setup generation branch switching">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/git-projects.svg' | relative_url }}" alt="Git Projects" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Git Projects</div>
+          <span class="robos-app-pkg">robos:git-projects</span>
+          <p class="robos-app-desc">Multi-repository hub with Monaco editor, terminal runners, dev-setup generation, and branch switching.</p>
+        </div>
+      </a>
+
+      <!-- 22. Issue Manager -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#arch-planning" class="robos-app-card win8-app-item" data-cat="review" data-title="Issue Manager" data-pkg="robos:issue-manager" data-desc="GitHub Gitea Issues client drag-and-drop Kanban board AI ticket breakdown">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/issue-manager.svg' | relative_url }}" alt="Issue Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Issue Manager</div>
+          <span class="robos-app-pkg">robos:issue-manager</span>
+          <p class="robos-app-desc">GitHub & Gitea Issues client with drag-and-drop Kanban board, sprint milestones, and AI ticket breakdown.</p>
+        </div>
+      </a>
+
+      <!-- 23. Task Board -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#arch-planning" class="robos-app-card win8-app-item" data-cat="review" data-title="Task Board" data-pkg="robos:task-board" data-desc="Interactive sprint Kanban board swimlanes custom columns WIP limits">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/task-board.svg' | relative_url }}" alt="Task Board" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Task Board</div>
+          <span class="robos-app-pkg">robos:task-board</span>
+          <p class="robos-app-desc">Interactive sprint Kanban board with swimlanes, custom status columns, and WIP limits.</p>
+        </div>
+      </a>
+
+      <!-- 24. Task Servers -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#arch-planning" class="robos-app-card win8-app-item" data-cat="review" data-title="Task Servers" data-pkg="robos:task-servers" data-desc="Connect authenticate Jira GitHub Enterprise Linear task servers">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/task-servers.svg' | relative_url }}" alt="Task Servers" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Task Servers</div>
+          <span class="robos-app-pkg">robos:task-servers</span>
+          <p class="robos-app-desc">Connect and authenticate Jira, GitHub Enterprise, and Linear task management servers.</p>
+        </div>
+      </a>
+
+      <!-- 25. Workflow Studio -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#arch-planning" class="robos-app-card win8-app-item" data-cat="review" data-title="Workflow Studio" data-pkg="robos:workflow-studio" data-desc="Visual issue lifecycle designer status transitions condition gates validation rules">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/workflow-studio.svg' | relative_url }}" alt="Workflow Studio" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Workflow Studio</div>
+          <span class="robos-app-pkg">robos:workflow-studio</span>
+          <p class="robos-app-desc">Visual issue lifecycle designer, status transitions, condition gates, and validation rules.</p>
+        </div>
+      </a>
+
+      <!-- 26. Automation Studio -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#arch-planning" class="robos-app-card win8-app-item" data-cat="review" data-title="Automation Studio" data-pkg="robos:automation-studio" data-desc="Low-code SDLC event triggers Git webhook actions automated agent runbooks">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/automation-studio.svg' | relative_url }}" alt="Automation Studio" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Automation Studio</div>
+          <span class="robos-app-pkg">robos:automation-studio</span>
+          <p class="robos-app-desc">Low-code SDLC event triggers, Git webhook actions, and automated agent runbooks.</p>
+        </div>
+      </a>
+
+      <!-- 27. Schema Studio & Registry -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#robos-schema-studio--definitive-registry" class="robos-app-card win8-app-item" data-cat="review data" data-title="Schema Studio & Registry" data-pkg="robos:schema-studio" data-desc="Schema.org ontology TypeSpec domain modeling W3C SHACL synthesis JSON-LD validator">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/schema-studio.svg' | relative_url }}" alt="Schema Studio & Registry" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Schema Studio & Registry</div>
+          <span class="robos-app-pkg">robos:schema-studio</span>
+          <p class="robos-app-desc">Schema.org ontology explorer, TypeSpec domain modeling, W3C SHACL shape synthesis, and JSON-LD validator.</p>
+        </div>
+      </a>
+
+      <!-- 28. RobOS Group Manager -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#robos-group-manager-teams-organizations--enterprise-directory-sync" class="robos-app-card win8-app-item" data-cat="review core" data-title="RobOS Group Manager" data-pkg="robos:group-manager" data-desc="Enterprise directory sync Okta SCIM LDAP company tenant onboarding Team Topologies">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/group-manager.svg' | relative_url }}" alt="RobOS Group Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">RobOS Group Manager</div>
+          <span class="robos-app-pkg">robos:group-manager</span>
+          <p class="robos-app-desc">Enterprise directory sync (Okta/SCIM/LDAP), company tenant onboarding, and Team Topologies.</p>
+        </div>
+      </a>
+
+      <!-- 29. Pass Manager -->
+      <a href="{{ site.baseurl }}{% link big-wins/devops-security-pass.md %}" class="robos-app-card win8-app-item" data-cat="cloud core" data-title="Pass Manager" data-pkg="robos:pass-manager" data-desc="UNIX password store pass GUI GPG key encryption zero plaintext secrets credential injection">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/pass-manager.svg' | relative_url }}" alt="Pass Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Pass Manager</div>
+          <span class="robos-app-pkg">robos:pass-manager</span>
+          <p class="robos-app-desc">GUI for local UNIX password store (pass) with GPG key encryption, zero plaintext secrets, and credential injection.</p>
+        </div>
+      </a>
+
+      <!-- 30. RobOS eLearning Hub -->
+      <a href="{{ site.baseurl }}{% link pr-review-theater.md %}#standalone-robos-elearning-player-hub" class="robos-app-card win8-app-item" data-cat="ai core" data-title="RobOS eLearning Hub" data-pkg="robos:robos-elearning" data-desc="Interactive developer learning player hands-on labs tmpfs sandboxes knowledge graph certificates">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/robos-elearning.svg' | relative_url }}" alt="RobOS eLearning Hub" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">RobOS eLearning Hub</div>
+          <span class="robos-app-pkg">robos:robos-elearning</span>
+          <p class="robos-app-desc">Interactive developer learning player, hands-on lab runner in tmpfs sandboxes, and Knowledge Graph certificates.</p>
+        </div>
+      </a>
+
+      <!-- 31. Software Center -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#core-desktop" class="robos-app-card win8-app-item" data-cat="core" data-title="Software Center" data-pkg="robos:software-center" data-desc="Developer tool store install manage IDEs compilers runtimes cloud CLI SDKs">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/software-center.svg' | relative_url }}" alt="Software Center" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Software Center</div>
+          <span class="robos-app-pkg">robos:software-center</span>
+          <p class="robos-app-desc">Developer tool store to install and manage IDEs (IntelliJ, VS Code), compilers, language runtimes, and cloud SDKs.</p>
+        </div>
+      </a>
+
+      <!-- 32. Workspace Manager -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#core-desktop" class="robos-app-card win8-app-item" data-cat="core" data-title="Workspace Manager" data-pkg="robos:workspace-manager" data-desc="Auto-discover configure switch provision local repository workspaces IntelliJ VS Code">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/workspace-manager.svg' | relative_url }}" alt="Workspace Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Workspace Manager</div>
+          <span class="robos-app-pkg">robos:workspace-manager</span>
+          <p class="robos-app-desc">Auto-discover, configure, switch, and provision local repository workspaces in IntelliJ IDEA and VS Code.</p>
+        </div>
+      </a>
+
+      <!-- 33. Desktop Shell -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#core-desktop" class="robos-app-card win8-app-item" data-cat="core" data-title="Desktop Shell" data-pkg="robos:robos-desktop" data-desc="Wayland X11 desktop taskbar panel launchers dock system tray status notifications">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/robos-desktop.svg' | relative_url }}" alt="Desktop Shell" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Desktop Shell</div>
+          <span class="robos-app-pkg">robos:robos-desktop</span>
+          <p class="robos-app-desc">Wayland/X11 desktop taskbar, panel launchers, dock, and system tray status notifications.</p>
+        </div>
+      </a>
+
+      <!-- 34. Desktop Manager -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#core-desktop" class="robos-app-card win8-app-item" data-cat="core" data-title="Desktop Manager" data-pkg="robos:desktop-manager" data-desc="Session lifecycle manager GNOME panel bridge multi-display workspace organizer">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/desktop-manager.svg' | relative_url }}" alt="Desktop Manager" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Desktop Manager</div>
+          <span class="robos-app-pkg">robos:desktop-manager</span>
+          <p class="robos-app-desc">Session lifecycle manager, GNOME panel extension bridge, and multi-display workspace organizer.</p>
+        </div>
+      </a>
+
+      <!-- 35. Desktop Customizer -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#core-desktop" class="robos-app-card win8-app-item" data-cat="core" data-title="Desktop Customizer" data-pkg="robos:desktop-customizer" data-desc="Configure dark navy cyan desktop themes accent colors panel layouts fonts shortcuts">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/desktop-customizer.svg' | relative_url }}" alt="Desktop Customizer" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">Desktop Customizer</div>
+          <span class="robos-app-pkg">robos:desktop-customizer</span>
+          <p class="robos-app-desc">Configure dark navy/cyan desktop themes, accent colors, panel layouts, terminal fonts, and window decorations.</p>
+        </div>
+      </a>
+
+      <!-- 36. RobOS Preferences -->
+      <a href="{{ site.baseurl }}{% link apps.md %}#core-desktop" class="robos-app-card win8-app-item" data-cat="core" data-title="RobOS Preferences" data-pkg="robos:robos-preferences" data-desc="System-wide developer settings AI model routing tiers GPG keyrings Prompt Security Guard">
+        <div class="robos-app-icon-wrap">
+          <img src="{{ '/assets/images/icons/robos-preferences.svg' | relative_url }}" alt="RobOS Preferences" width="38" height="38" loading="lazy">
+        </div>
+        <div class="robos-app-body">
+          <div class="robos-app-name">RobOS Preferences</div>
+          <span class="robos-app-pkg">robos:robos-preferences</span>
+          <p class="robos-app-desc">System-wide developer settings, AI model routing tiers, GPG keyrings, and Prompt Security Guard policies.</p>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Empty State -->
+    <div id="win8-empty-state" style="display: none; text-align: center; padding: 3rem 1rem; color: #94a3b8;">
+      <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔍</div>
+      <div style="font-weight: 600; font-size: 1.05rem; color: #e2e8f0; margin-bottom: 0.25rem;">No applications found</div>
+      <div style="font-size: 0.85rem;">Try a different keyword or select the "All" category.</div>
+    </div>
+  </div>
+
+  <!-- Window Footer Bar -->
+  <div style="padding: 0.75rem 1.25rem; font-size: 0.82rem; color: #94a3b8; border-top: 1px solid #1e293b; background: #0d1424; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+    <span>⚡ All applications boot instantly with shared native modules & zero framework weight</span>
+    <a href="{{ site.baseurl }}{% link apps.md %}" style="color: #00e5ff; font-weight: 600; text-decoration: none;">Browse Full App Suite Catalog &rarr;</a>
   </div>
 </div>
+
+<script>
+let currentWin8Cat = 'all';
+function selectWin8Cat(btn, cat) {
+  currentWin8Cat = cat;
+  document.querySelectorAll('.win8-cat-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.background = '#111827';
+    b.style.color = '#cbd5e1';
+    b.style.borderColor = '#1e293b';
+  });
+  btn.classList.add('active');
+  btn.style.background = '#00e5ff';
+  btn.style.color = '#070b13';
+  btn.style.borderColor = '#00e5ff';
+  filterWin8Apps();
+}
+function filterWin8Apps() {
+  const query = (document.getElementById('win8-app-search').value || '').toLowerCase().trim();
+  const cards = document.querySelectorAll('.win8-app-item');
+  let visibleCount = 0;
+  cards.forEach(card => {
+    const catStr = card.getAttribute('data-cat') || '';
+    const cats = catStr.split(' ');
+    const title = (card.getAttribute('data-title') || '').toLowerCase();
+    const pkg = (card.getAttribute('data-pkg') || '').toLowerCase();
+    const desc = (card.getAttribute('data-desc') || '').toLowerCase();
+    const matchesCat = (currentWin8Cat === 'all' || cats.includes(currentWin8Cat));
+    const matchesQuery = !query || title.includes(query) || pkg.includes(query) || desc.includes(query);
+    if (matchesCat && matchesQuery) {
+      card.style.display = 'flex';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+  const countEl = document.getElementById('win8-app-count');
+  if (countEl) countEl.textContent = `Showing ${visibleCount} of ${cards.length} applications`;
+  const emptyEl = document.getElementById('win8-empty-state');
+  const gridEl = document.getElementById('win8-apps-grid');
+  if (emptyEl && gridEl) {
+    if (visibleCount === 0) {
+      emptyEl.style.display = 'block';
+      gridEl.style.display = 'none';
+    } else {
+      emptyEl.style.display = 'grid';
+      gridEl.style.display = 'grid';
+    }
+  }
+}
+</script>
 
 #### Key Capabilities:
 - **Full SDLC Coverage**: Dev Central, Issue Manager, Relational DB Manager, NoSQL Manager, Git-backed REST API Client (`.bru`), gRPC Client, GraphQL Client, Kube Studio, Pass Manager, Task Planner, and more.
