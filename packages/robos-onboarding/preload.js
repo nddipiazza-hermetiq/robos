@@ -36,6 +36,11 @@ contextBridge.exposeInMainWorld('onboardingAPI', {
   getDevAppsCatalog: () => ipcRenderer.invoke('get-dev-apps-catalog'),
   getGitProjectsList: () => ipcRenderer.invoke('get-git-projects-list'),
 
+  notificationStatus: () => ipcRenderer.invoke('notifications-status'),
+  installNotifications: () => ipcRenderer.invoke('notifications-install'),
+  testNotification: () => ipcRenderer.invoke('notifications-testNotification'),
+  openNotifications: () => ipcRenderer.invoke('notifications-open'),
+
   // Completion
   completeOnboarding: (details) => ipcRenderer.invoke('complete-onboarding', details),
   closeWindow: () => ipcRenderer.invoke('close-window'),

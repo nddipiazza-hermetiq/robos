@@ -17,6 +17,9 @@ try {
   }
 } catch {}
 
+// Each companion app needs its own Electron instance lock; shared history stays in ~/.config/robos.
+app.setPath('userData', path.join(os.homedir(), '.config', 'robos', 'electron', 'robos-toast'));
+
 // Single-instance lock (bypassed in test mode)
 if (process.env.ROBOS_TEST !== '1' && process.env.ROBOS_TEST_MODE !== '1') {
   const gotLock = app.requestSingleInstanceLock();
@@ -360,7 +363,7 @@ app.on('ready', () => {
     width: 900,
     height: 620,
     backgroundColor: '#0d1117',
-    show: true,
+    show: !process.argv.includes('--background'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -369,8 +372,7 @@ app.on('ready', () => {
   });
   debugWin.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   debugWin.once('ready-to-show', () => {
-    debugWin.show();
-    debugWin.focus();
+    if (!process.argv.includes('--background')) { debugWin.show(); debugWin.focus(); }
   });
 
   if (_debugServer) _debugServer.startDebugServer(debugWin, 19126);
@@ -386,7 +388,8 @@ app.on('ready', () => {
         setTimeout(checkForNewNotifications, 100);
       }
     });
-  } catch {}
+  } catch (error) { console.error('Notification watcher failed:', error.message); app.quit(); return; }
+  fs.writeFileSync(path.join(CONFIG_DIR, 'toast-ready.json'), JSON.stringify({ pid: process.pid }));
 });
 
 app.on('window-all-closed', (e) => e.preventDefault());

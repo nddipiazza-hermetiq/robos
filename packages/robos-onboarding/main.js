@@ -903,3 +903,14 @@ ipcMain.handle('launch-app', (_, appId) => {
   } catch {}
   return { ok: true };
 });
+
+const notificationSetup = require('../robos-lib/notification-setup').createSetup();
+for (const action of ['status', 'install', 'testNotification', 'open']) {
+  ipcMain.handle('notifications-' + action, async () => {
+    try {
+      let result = await notificationSetup[action]();
+      if (action === 'install') result = await notificationSetup.start();
+      return { ok: true, ...result };
+    } catch (error) { return { ok: false, message: error.message }; }
+  });
+}
