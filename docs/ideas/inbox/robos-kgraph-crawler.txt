@@ -1,0 +1,25 @@
+# Raw Idea Note: RobOS KGraph Crawler
+
+Idea: RobOS KGraph Crawler
+Source: User / Apache Tika Committer
+
+Summary & Core Vision:
+Systematically create RobOS Knowledge Graph schema packages or use existing ones as it parses through any datasource.
+Utilize Apache Tika 4.0 Pipes architecture:
+- PipesIterator: iterates over external data sources, repositories, databases, filesystems, and emits FetchEmitTuples.
+- Fetcher: retrieves raw streams and document payloads for parsing.
+- Parser / Content Extraction: deep content and metadata extraction.
+- Emitter: writes parsed results to target destinations.
+
+RobOS Integration:
+- Build our own native RobOS pipe iterators, fetchers, and emitters to handle reading and writing of RobOS KGraph objects and schemas.
+  - RobOS pipe iterators: iterate through KGraph packages, local/remote git repos, databases, message queues, cloud infra.
+  - RobOS fetchers: fetch KGraph entities, schemas, local workspace files, DB DDLs, ASTs, and cloud manifests with pass credential integration.
+  - RobOS emitters: write directly into `.robos/kgraphs/<pkg>/package.jsonld`, update `.robos/kgraph.yaml`, maintain aggregated `.robos/knowledge-graph.jsonld`, and run W3C SHACL shape validation gates.
+- Dynamic Schema Package Creation & Inference:
+  - When parsing any data source, systematically determine if an existing schema package (core-platform, services, applications, devops, testing, organization, learning, documentation) accommodates the extracted entities.
+  - If a novel domain/taxonomy is discovered, dynamically synthesize a new KGraph schema package (`.robos/kgraphs/<new-package>/package.jsonld`), generate W3C SHACL shape constraints with `robos:refersFrom` linking to Schema.org / OSLC / C4 ontologies, register in `.robos/kgraph.yaml`, and synthesize living documentation.
+- tika-grpc Integration:
+  - Connect RobOS KGraph Crawler with `tika-grpc` high-throughput streaming daemon.
+  - Stream multi-language, multi-format payloads over gRPC for crash-isolated, asynchronous parsing of binary files, PDFs, OpenAPI specs, Protobufs, and source code.
+- Provide a full top-level documentation area in RobOS docs for the KGraph Crawler.

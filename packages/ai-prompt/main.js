@@ -26,6 +26,16 @@ try {
   for (const p of libPaths) { try { aiJson = require(p); break; } catch {} }
 } catch {}
 
+let promptSecurity = null;
+try {
+  const libPaths = [
+    process.env.ROBOS_LIB_PATH && path.join(process.env.ROBOS_LIB_PATH, 'prompt-security'),
+    path.resolve(__dirname, '..', 'robos-lib', 'prompt-security'),
+    '/usr/local/share/robos/robos-lib/prompt-security',
+  ].filter(Boolean);
+  for (const p of libPaths) { try { promptSecurity = require(p); break; } catch {} }
+} catch {}
+
 let _debugServer = null;
 try {
   const libPaths = [
@@ -181,8 +191,30 @@ ipcMain.handle('ap-open-login-terminal', (_, cmd) => {
   }).unref();
 });
 
+ipcMain.handle('ap-scan-prompt', (_, text) => {
+  if (!promptSecurity) return { allowed: true, findings: [], redactedText: text || '', cleanText: text || '' };
+  const guard = new promptSecurity.PromptSecurityGuard();
+  return guard.scan(text);
+});
+
 ipcMain.handle('ap-run-prompt', async (_, { prompt, skillHints, model, agent }) => {
   if (!prompt || !prompt.trim()) return { ok: false, error: 'Empty prompt' };
+
+  let effectivePrompt = prompt.trim();
+  let securityFindings = [];
+  if (promptSecurity) {
+    const guard = new promptSecurity.PromptSecurityGuard();
+    const secResult = guard.scan(effectivePrompt);
+    securityFindings = secResult.findings;
+    if (!secResult.allowed) {
+      log.warn('prompt-blocked-by-security', `AI prompt blocked: ${secResult.summary}`);
+      return { ok: false, error: secResult.summary, securityFindings };
+    }
+    if (secResult.mode === 'redact' && secResult.findings.length > 0) {
+      effectivePrompt = secResult.redactedText;
+      log.info('prompt-redacted-by-security', `AI prompt redacted ${secResult.findings.length} sensitive items`);
+    }
+  }
 
   const selectedAgent = agent || 'claude';
 
@@ -193,7 +225,7 @@ ipcMain.handle('ap-run-prompt', async (_, { prompt, skillHints, model, agent }) 
   const systemPrompt = `You are RobOS AI Prompt — an AI assistant that helps developers perform operating system and development tasks on a Linux desktop.
 
 The user has asked you to perform the following task:
-"${prompt.trim()}"
+"${effectivePrompt}"
 ${skillContext}
 
 Please perform this task and return a structured JSON result describing exactly what you did. Use this exact JSON schema:

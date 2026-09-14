@@ -2,7 +2,7 @@
 title: Declarative GitOps Synthesis
 layout: default
 parent: RobOS Main Wins
-nav_order: 11
+nav_order: 13
 permalink: /big-wins/declarative-gitops-synthesis.html
 ---
 

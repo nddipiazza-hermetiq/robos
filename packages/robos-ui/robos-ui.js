@@ -498,6 +498,51 @@ robos-ai-textarea {
 }
 .robos-auth-banner-dismiss:hover { color: #f85149; }
 
+/* Prompt Security banner */
+.robos-security-banner {
+  display: none;
+  align-items: center; gap: 8px;
+  background: #2a2010;
+  border: 1px solid #d2992255;
+  border-radius: 7px 7px 0 0;
+  padding: 6px 12px;
+  font-size: 11px; color: #e3b341;
+}
+.robos-security-banner.visible { display: flex; }
+.robos-security-banner-icon { font-size: 13px; flex-shrink: 0; }
+.robos-security-banner-msg { flex: 1; line-height: 1.4; }
+.robos-security-banner-btn {
+  background: #d29922; color: #0d1117; border: none;
+  border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; font-family: inherit;
+}
+.robos-security-banner-btn:hover { background: #e3b341; }
+.robos-security-banner-dismiss {
+  background: none; border: none; color: #8b949e; cursor: pointer;
+  font-size: 15px; line-height: 1; padding: 0 2px; flex-shrink: 0;
+}
+.robos-security-banner-dismiss:hover { color: #e3b341; }
+
+/* Prompt Security Toolbar Badge */
+.robos-security-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 600; padding: 2px 7px;
+  border-radius: 10px; cursor: pointer; user-select: none;
+  transition: all .15s; flex-shrink: 0;
+}
+.robos-security-badge.clean {
+  background: rgba(46, 160, 67, 0.15); color: #3fb950;
+  border: 1px solid rgba(63, 185, 80, 0.3);
+}
+.robos-security-badge.warning {
+  background: rgba(210, 153, 34, 0.2); color: #e3b341;
+  border: 1px solid rgba(227, 179, 65, 0.4);
+}
+.robos-security-badge.blocked {
+  background: rgba(248, 81, 73, 0.2); color: #f85149;
+  border: 1px solid rgba(248, 81, 73, 0.4);
+}
+
 /* ── RobosQuestionWizard styles ────────────────────────────────────────────── */
 robos-question-wizard {
   display: block;
@@ -667,6 +712,62 @@ robos-question-wizard {
     return null; // can't check — no API available
   }
 
+  // ── Prompt Security Engine (UI & Pre-Flight) ──────────────────────────────────
+  function luhnCheckUI(numStr) {
+    const digits = String(numStr).replace(/\D/g, '');
+    if (digits.length < 13 || digits.length > 19) return false;
+    let sum = 0, alt = false;
+    for (let i = digits.length - 1; i >= 0; i--) {
+      let d = parseInt(digits.charAt(i), 10);
+      if (alt) { d *= 2; if (d > 9) d -= 9; }
+      sum += d;
+      alt = !alt;
+    }
+    return sum % 10 === 0;
+  }
+
+  const UI_SECURITY_RULES = [
+    { id: 'aws-key', name: 'AWS Access Key', regex: /\b(AKIA[0-9A-Z]{16})\b/g, placeholder: '[REDACTED:AWS_KEY]', validate: v => v !== 'AKIAIOSFODNN7EXAMPLE' },
+    { id: 'github-pat', name: 'GitHub Token', regex: /\b(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{82}|gho_[a-zA-Z0-9]{36})\b/g, placeholder: '[REDACTED:GITHUB_TOKEN]' },
+    { id: 'gitlab-pat', name: 'GitLab Token', regex: /\b(glpat-[a-zA-Z0-9_-]{20,})\b/g, placeholder: '[REDACTED:GITLAB_TOKEN]' },
+    { id: 'slack-token', name: 'Slack Token', regex: /\b(xox[baprs]-[0-9]{10,13}-[0-9]{10,13}[a-zA-Z0-9_-]*)\b/g, placeholder: '[REDACTED:SLACK_TOKEN]' },
+    { id: 'stripe-key', name: 'Stripe Key', regex: /\b([sr]k_(?:live|test)_[0-9a-zA-Z]{24,})\b/g, placeholder: '[REDACTED:STRIPE_KEY]' },
+    { id: 'openai-key', name: 'OpenAI Key', regex: /\b(sk-(?:proj-)?[a-zA-Z0-9_-]{20,})\b/g, placeholder: '[REDACTED:OPENAI_KEY]' },
+    { id: 'anthropic-key', name: 'Anthropic Key', regex: /\b(sk-ant-[a-zA-Z0-9_-]{32,})\b/g, placeholder: '[REDACTED:ANTHROPIC_KEY]' },
+    { id: 'google-key', name: 'Google API Key', regex: /\b(AIza[0-9A-Za-z_-]{35})\b/g, placeholder: '[REDACTED:GOOGLE_KEY]' },
+    { id: 'private-key', name: 'Private Key Block', regex: /-----BEGIN (?:RSA|DSA|EC|OPENSSH|PGP) PRIVATE KEY(?: BLOCK)?-----[\s\S]*?-----END (?:RSA|DSA|EC|OPENSSH|PGP) PRIVATE KEY(?: BLOCK)?-----/g, placeholder: '[REDACTED:PRIVATE_KEY]' },
+    { id: 'db-url', name: 'Database Credentials', regex: /\b((?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis):\/\/[^:\s/]+:)([^@\s]+)(@[^\s]+)/gi, isReplacer: true, replace: (m, p, s, suf) => `${p}[REDACTED:DB_PASS]${suf}` },
+    { id: 'basic-auth', name: 'Basic Auth Password', regex: /\b(https?:\/\/[^:\s/]+:)([^@\s]+)(@[^\s]+)/gi, isReplacer: true, replace: (m, p, s, suf) => `${p}[REDACTED:AUTH_PASS]${suf}` },
+    { id: 'jwt', name: 'JWT Token', regex: /\b(eyJ[a-zA-Z0-9_-]{10,}\.eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_.-]{10,})\b/g, placeholder: '[REDACTED:JWT]' },
+    { id: 'us-ssn', name: 'US Social Security Number', regex: /\b(?!000|666|9\d{2})(\d{3})-(?!00)(\d{2})-(?!0000)(\d{4})\b/g, placeholder: '[REDACTED:SSN]', validate: v => v !== '000-00-0000' && v !== '111-11-1111' },
+    { id: 'credit-card', name: 'Payment Card', regex: /\b((?:\d{4}[- ]?){3}\d{4}|\d{4}[- ]?\d{6}[- ]?\d{5})\b/g, placeholder: '[REDACTED:CREDIT_CARD]', validate: luhnCheckUI },
+    { id: 'prompt-injection', name: 'Prompt Injection Directive', regex: /\b(?:ignore|disregard|forget|override)\s+(?:all\s+)?(?:previous|prior|above|system)\s+(?:instructions|prompts|rules|directives)\b/gi, placeholder: '[REDACTED:INJECTION_OVERRIDE]' },
+    { id: 'exfiltration', name: 'Credential Exfiltration Attempt', regex: /\b(?:curl|wget|nc|netcat)\s+.*(?:~?\/\.ssh|\/etc\/(?:shadow|passwd)|~?\/\.password-store)\b/gi, placeholder: '[REDACTED:EXFILTRATION_COMMAND]' }
+  ];
+
+  function scanPromptUI(text) {
+    if (!text || typeof text !== 'string') return { findings: [], redactedText: text || '' };
+    const findings = [];
+    let redactedText = text;
+
+    for (const rule of UI_SECURITY_RULES) {
+      if (rule.isReplacer) {
+        redactedText = redactedText.replace(new RegExp(rule.regex), rule.replace);
+      }
+      const r = new RegExp(rule.regex);
+      let m;
+      while ((m = r.exec(text)) !== null) {
+        const val = m[1] || m[0];
+        if (rule.validate && !rule.validate(val)) continue;
+        findings.push({ id: rule.id, name: rule.name, matchedText: val, placeholder: rule.placeholder });
+        if (rule.placeholder && !rule.placeholder.startsWith('$')) {
+          redactedText = redactedText.split(val).join(rule.placeholder);
+        }
+      }
+    }
+    return { findings, redactedText };
+  }
+
   // ── RobosAITextarea custom element ────────────────────────────────────────────
   class RobosAITextarea extends HTMLElement {
     constructor() {
@@ -684,7 +785,12 @@ robos-question-wizard {
       this._maxChars = 0;
       this._showSubmit   = true;
       this._showCommands = true;
+      this._promptSecurity = 'redact';
+      this._securityFindings = [];
+      this._lastSecResult = null;
+      this._secTimer = null;
     }
+
 
     get value() {
       return this._inner ? this._inner.innerText : '';
@@ -703,10 +809,13 @@ robos-question-wizard {
       this._showSubmit   = this.getAttribute('show-submit') !== 'false';
       this._showCommands = this.getAttribute('show-commands') !== 'false';
       this._showAgent    = this.getAttribute('show-agent') !== 'false';
+      this._promptSecurity = this.getAttribute('prompt-security') || 'redact';
       this._agents       = [...DEFAULT_AGENTS];
       this._selectedAgent = this.getAttribute('agent') || this._agents[0].id;
       this._render();
       this._bind();
+      // Run initial security scan
+      this._updateSecurityState(this.value);
       // Async auth check — don't block rendering
       this._runAuthCheck(this._selectedAgent);
     }
@@ -815,6 +924,31 @@ robos-question-wizard {
       this._authBanner.appendChild(authDismiss);
       this.appendChild(this._authBanner);
 
+      // Security warning banner (above the textarea wrap)
+      this._securityBanner = document.createElement('div');
+      this._securityBanner.className = 'robos-security-banner';
+      const secIcon = document.createElement('span');
+      secIcon.className = 'robos-security-banner-icon';
+      secIcon.textContent = '🛡️';
+      const secMsg = document.createElement('span');
+      secMsg.className = 'robos-security-banner-msg';
+      secMsg.textContent = 'Sensitive items detected in prompt.';
+      const secRedactBtn = document.createElement('button');
+      secRedactBtn.className = 'robos-security-banner-btn';
+      secRedactBtn.textContent = '✦ Auto-Redact';
+      secRedactBtn.title = 'Mask detected secrets & PII with safe placeholders';
+      secRedactBtn.addEventListener('click', () => this._applySecurityRedaction());
+      const secDismiss = document.createElement('button');
+      secDismiss.className = 'robos-security-banner-dismiss';
+      secDismiss.title = 'Dismiss';
+      secDismiss.textContent = '×';
+      secDismiss.addEventListener('click', () => this._hideSecurityBanner());
+      this._securityBanner.appendChild(secIcon);
+      this._securityBanner.appendChild(secMsg);
+      this._securityBanner.appendChild(secRedactBtn);
+      this._securityBanner.appendChild(secDismiss);
+      this.appendChild(this._securityBanner);
+
       // Context chips row
       this._chipsRow = document.createElement('div');
       this._chipsRow.className = 'robos-context-chips';
@@ -912,6 +1046,18 @@ robos-question-wizard {
       this._hintPill.addEventListener('click', () => { this._inner.focus(); this._triggerPalette(''); });
       if (this._showCommands) this._toolbarLeft.appendChild(this._hintPill);
 
+      // Prompt Security Badge
+      this._securityBadge = document.createElement('div');
+      this._securityBadge.className = 'robos-security-badge clean';
+      this._securityBadge.innerHTML = '<span>🛡️</span> <span>Secure</span>';
+      this._securityBadge.title = 'RobOS Prompt Security Guard (Gitleaks/TruffleHog/Presidio/OWASP rules active)';
+      this._securityBadge.addEventListener('click', () => {
+        if (this._securityFindings && this._securityFindings.length > 0) {
+          this._showSecurityBanner(this._lastSecResult);
+        }
+      });
+      this._toolbarRight.appendChild(this._securityBadge);
+
       // Char count
       if (this._maxChars) {
         this._charCount = document.createElement('div');
@@ -993,6 +1139,10 @@ robos-question-wizard {
 
       const text = this._inner.innerText;
       this._updateCharCount(text);
+
+      // Debounced prompt security check
+      clearTimeout(this._secTimer);
+      this._secTimer = setTimeout(() => this._updateSecurityState(text), 200);
 
       // Detect slash command trigger
       const sel = window.getSelection();
@@ -1566,8 +1716,26 @@ robos-question-wizard {
     // ── Submit ───────────────────────────────────────────────────────────────────
     _doSubmit() {
       if (this._streaming) return;
-      const value = this.value;
+      let value = this.value;
       if (!value) return;
+
+      const secResult = scanPromptUI(value);
+      this._lastSecResult = secResult;
+      this._securityFindings = secResult.findings;
+
+      if (this._promptSecurity === 'block' && secResult.findings.length > 0) {
+        this._showSecurityBanner(secResult);
+        this._inner.focus();
+        return;
+      }
+
+      let wasRedacted = false;
+      if (this._promptSecurity === 'redact' && secResult.findings.length > 0) {
+        value = secResult.redactedText;
+        this.value = value;
+        wasRedacted = true;
+        this._updateSecurityState(value);
+      }
 
       // Parse out command if present
       const cmdMatch = value.match(/^\/(\w+)\s*([\s\S]*)$/);
@@ -1583,15 +1751,74 @@ robos-question-wizard {
             title: `📝 AI Prompt${command ? ` (/${command})` : ''}`,
             detail: text.slice(0, 200),
             status: 'started',
+            securityFindings: secResult.findings.length,
           });
         } catch {}
       }
 
       this.dispatchEvent(new CustomEvent('robos-submit', {
-        detail: { value, command, text, context: [...this._contextItems] },
+        detail: {
+          value,
+          command,
+          text,
+          context: [...this._contextItems],
+          securityFindings: secResult.findings,
+          redacted: wasRedacted,
+        },
         bubbles: true,
       }));
     }
+
+    // ── Prompt Security UI Helpers ────────────────────────────────────────────────
+    _updateSecurityState(text) {
+      if (this._promptSecurity === 'off') {
+        if (this._securityBadge) this._securityBadge.style.display = 'none';
+        this._hideSecurityBanner();
+        return;
+      }
+      const res = scanPromptUI(text);
+      this._lastSecResult = res;
+      this._securityFindings = res.findings;
+
+      if (!this._securityBadge) return;
+      this._securityBadge.style.display = 'inline-flex';
+
+      if (res.findings.length === 0) {
+        this._securityBadge.className = 'robos-security-badge clean';
+        this._securityBadge.innerHTML = '<span>🛡️</span> <span>Secure</span>';
+        this._securityBadge.title = 'RobOS Prompt Security: No sensitive items detected';
+        this._hideSecurityBanner();
+      } else {
+        const isBlocked = this._promptSecurity === 'block';
+        this._securityBadge.className = `robos-security-badge ${isBlocked ? 'blocked' : 'warning'}`;
+        this._securityBadge.innerHTML = `<span>⚠️</span> <span>${res.findings.length} Sensitive</span>`;
+        this._securityBadge.title = `RobOS Prompt Security: Detected ${res.findings.map(f => f.name).join(', ')}`;
+        this._showSecurityBanner(res);
+      }
+    }
+
+    _showSecurityBanner(res) {
+      if (!this._securityBanner) return;
+      const findings = (res && res.findings) || this._securityFindings || [];
+      if (!findings.length) return;
+      const types = [...new Set(findings.map(f => f.name))];
+      this._securityBanner.querySelector('.robos-security-banner-msg').textContent =
+        `RobOS Prompt Security: Detected ${types.join(', ')}. Use Auto-Redact to sanitize before sending to AI.`;
+      this._securityBanner.classList.add('visible');
+    }
+
+    _hideSecurityBanner() {
+      if (this._securityBanner) this._securityBanner.classList.remove('visible');
+    }
+
+    _applySecurityRedaction() {
+      if (this._lastSecResult && this._lastSecResult.redactedText) {
+        this.value = this._lastSecResult.redactedText;
+        this._updateSecurityState(this.value);
+        this._inner.focus();
+      }
+    }
+
 
     // ── Agent auth check ─────────────────────────────────────────────────────────
     async _runAuthCheck(agentId) {

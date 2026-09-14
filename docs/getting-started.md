@@ -1,11 +1,20 @@
 ---
-title: Getting Started
+title: Installation / Getting Started
 layout: default
 nav_order: 2
 ---
 
-# Installation & Getting Started
+# Installation / Getting Started
 {: .no_toc }
+
+<div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0 1.25rem;">
+  <span style="background: rgba(0, 229, 255, 0.12); color: #00e5ff; border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 9999px; padding: 4px 12px; font-weight: 600; font-size: 0.85rem; font-family: 'Space Grotesk', sans-serif;">
+    Latest Version: v0.0.7
+  </span>
+  <a href="https://github.com/nddipiazza/robos/releases/tag/v0.0.7" target="_blank" rel="noopener" style="font-size: 0.85rem; color: #38bdf8; text-decoration: none; font-weight: 500;">
+    📦 View v0.0.7 Release Assets &amp; Changelog &rarr;
+  </a>
+</div>
 
 Run RobOS instantly on your existing macOS, Linux, or Windows WSL machine via Docker or standalone CLI/apps, or deploy the native developer desktop suite and optional appliance OS.
 {: .fs-6 .fw-300 }
@@ -89,25 +98,43 @@ All RobOS applications become accessible directly from the **RobOS App Launcher*
 
 ## Option 3 (Optional Power-User Appliance): Dedicated RobOS OS Distro & QEMU VM
 
-For regulated environments, hardware air-gapping, or developers who want a dedicated appliance workstation, RobOS provides a fully provisioned, bootable Ubuntu 26.04 LTS developer OS image and local QEMU/KVM virtual machine.
+For regulated environments, hardware air-gapping, or developers who want a dedicated appliance workstation, RobOS provides a fully provisioned, bootable Ubuntu 26.04 LTS developer OS image, GUI installer apps, and a local QEMU/KVM virtual machine.
 
-### A. Bare Metal Deployment (Flash via Rufus / Etcher / dd)
-1. Download the latest `robos-v0.1.0.iso` from [GitHub Releases](https://github.com/nddipiazza/robos/releases).
-2. Write to a USB flash drive:
+### RobOS v0.0.7 Release Downloads
+
+| Platform / Artifact | File Name | Purpose |
+|:---------------------|:----------|:--------|
+| **Linux Installer** | `RobOS-Installer-v0.0.7-linux.AppImage` / `.deb` | 3-click USB flash GUI app for Linux |
+| **macOS Installer** | `RobOS-Installer-v0.0.7-mac.dmg` | 3-click USB flash GUI app for macOS |
+| **Windows Installer** | `RobOS-Installer-v0.0.7-win.exe` | 3-click USB flash GUI app for Windows |
+| **Bootable Installer ISO** | `robos-v0.0.7.iso` | Unattended bootable OS installer for bare metal |
+| **VM Disk Image** | `robos-v0.0.7.qcow2` | Ready-to-boot QEMU/KVM virtual machine disk image |
+| **Seed ISO** | `robos-v0.0.7-seed.iso` | Cloud-init seed ISO for VM auto-provisioning |
+| **Packages Bundle** | `robos-v0.0.7-packages.tar.gz` | Complete 30+ native Electron application packages |
+
+👉 **[Download all v0.0.7 binaries & checksums on GitHub Releases](https://github.com/nddipiazza/robos/releases/tag/v0.0.7)**
+
+### A. Bare Metal Deployment (Flash via RobOS Installer, Rufus, Etcher, or dd)
+1. **Easiest**: Use the **RobOS Installer GUI** (`RobOS-Installer-v0.0.7-*` for Linux, macOS, or Windows), select your USB drive, and click **Flash**.
+2. **Alternative**: Download `robos-v0.0.7.iso` from [GitHub Releases](https://github.com/nddipiazza/robos/releases/tag/v0.0.7) and write to a USB flash drive:
    - **Windows**: Use [Rufus](https://rufus.ie/) (Select GPT partition scheme and UEFI target).
    - **macOS / Linux**: Use [balenaEtcher](https://etcher.balena.io/) or standard `dd`:
      ```bash
-     sudo dd if=robos-v0.1.0.iso of=/dev/sdX bs=4M status=progress conv=fsync
+     sudo dd if=robos-v0.0.7.iso of=/dev/sdX bs=4M status=progress conv=fsync
      ```
-3. Insert the USB drive into your PC, boot into UEFI, and let cloud-init automatically provision the environment.
+3. Insert the USB drive into your PC, boot into UEFI, and let cloud-init automatically provision the environment in ~15 minutes.
 4. Default credentials: `robos` / `robos`.
 
 ### B. Virtual Machine Deployment (QEMU / KVM)
 ```bash
-# Build the sparse disk image + cloud-init ISO
-infra/desktop/build.sh
+# Option 1: Boot pre-built v0.0.7 release image
+qemu-system-x86_64 -m 16G -smp $(nproc) -enable-kvm -cpu host \
+  -drive file=robos-v0.0.7.qcow2,format=qcow2 \
+  -cdrom robos-v0.0.7-seed.iso \
+  -net nic -net user,hostfwd=tcp::2224-:22,hostfwd=tcp::5910-:5900
 
-# Run VM (16GB RAM, all host CPUs, SSH on port 2224, VNC on port 5910)
+# Option 2: Build locally from source
+infra/desktop/build.sh
 infra/desktop/run.sh
 
 # Connect via SSH

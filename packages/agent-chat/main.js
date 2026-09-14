@@ -26,6 +26,16 @@ try {
   for (const p of libPaths) { try { _debugServer = require(p); break; } catch {} }
 } catch {}
 
+let promptSecurity = null;
+try {
+  const libPaths = [
+    process.env.ROBOS_LIB_PATH && path.join(process.env.ROBOS_LIB_PATH, 'prompt-security'),
+    path.resolve(__dirname, '..', 'robos-lib', 'prompt-security'),
+    '/usr/local/share/robos/robos-lib/prompt-security',
+  ].filter(Boolean);
+  for (const p of libPaths) { try { promptSecurity = require(p); break; } catch {} }
+} catch {}
+
 let log = { info: () => {}, warn: () => {}, error: () => {}, debug: () => {} };
 try {
   const libPaths = [
@@ -244,13 +254,31 @@ ipcMain.handle('chat:send-message', async (event, payload) => {
   const session = sessions.find(s => s.id === sessionId);
   if (!session) return { error: 'Session not found' };
 
+  let effectiveMessage = message;
+  let securityFindings = [];
+  if (promptSecurity) {
+    const guard = new promptSecurity.PromptSecurityGuard();
+    const secResult = guard.scan(message);
+    securityFindings = secResult.findings;
+    if (!secResult.allowed) {
+      log.warn('chat-message-blocked-by-security', `Chat message blocked: ${secResult.summary}`);
+      return { error: `Security Policy Violation: ${secResult.summary}`, securityFindings };
+    }
+    if (secResult.mode === 'redact' && secResult.findings.length > 0) {
+      effectiveMessage = secResult.redactedText;
+      log.info('chat-message-redacted-by-security', `Redacted ${secResult.findings.length} sensitive items in chat message`);
+    }
+  }
+
   const userMsg = {
     id: 'msg-' + Date.now(),
     role: 'user',
-    text: message,
+    text: effectiveMessage,
     timestamp: new Date().toISOString(),
-    context: context || []
+    context: context || [],
+    securityFindings,
   };
+
   session.messages.push(userMsg);
   session.updatedAt = new Date().toISOString();
 

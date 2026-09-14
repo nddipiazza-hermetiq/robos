@@ -2,7 +2,7 @@
 title: DevOps Security & Password Store
 layout: default
 parent: RobOS Main Wins
-nav_order: 7
+nav_order: 10
 permalink: /big-wins/devops-security-pass.html
 ---
 
@@ -98,6 +98,35 @@ When an autonomous AI agent executes a build or deployment in an ephemeral RAM s
 - The agent process requests credential injection via the RobOS security daemon.
 - RobOS decrypts the secret into an environment variable directly within the agent's in-memory `tmpfs` space.
 - The secret is never written to disk, never logged to stdout/stderr, and purged immediately upon process termination.
+
+---
+
+## Runtime LLM Prompt Security Guard (Gitleaks, TruffleHog, Presidio, OWASP LLM01)
+
+While the GPG password store protects infrastructure credentials at rest, developers interacting with AI agents often inadvertently paste stack traces, terminal logs, or configuration snippets containing sensitive API keys, customer PII, or internal tokens into prompt fields. Autonomous agents receiving user instructions might also be subjected to prompt injection attacks or instruction override payloads.
+
+To guarantee zero data leakage into LLM model contexts, RobOS equips the platform with an **OSS-Standard Prompt Security Guard**:
+
+### Multi-Standard Open Source Alignment
+- **Secret Detection (Gitleaks & TruffleHog)**: High-precision regex rules covering AWS access keys, GitHub Personal Access Tokens (classic `ghp_` and fine-grained `github_pat_`), GitLab tokens, Slack tokens, Stripe API keys, OpenAI (`sk-...`), Anthropic (`sk-ant-...`), Google Cloud API keys, asymmetric PEM private keys (`-----BEGIN RSA PRIVATE KEY-----`), JWTs, database connection URIs with masked passwords (`postgres://user:***@host/db`), and HTTP Basic Auth URLs.
+- **Algorithmic Shannon Entropy**: Computes mathematical character entropy on candidate strings to catch high-entropy random secrets and cryptographic keys that don't match specific vendor prefixes.
+- **PII Detection (Microsoft Presidio)**: Detects US Social Security Numbers, phone numbers, personal email addresses, RFC 1918 private IP addresses, and credit cards with **Luhn algorithm checksum validation**.
+- **Prompt Injection Defense (OWASP LLM01)**: Intercepts system prompt overrides (`ignore previous instructions`), DAN/jailbreak patterns, and dangerous shell exfiltration commands (`cat ~/.ssh/id_rsa`, `pass show`, etc.).
+
+### Multi-Tier Defense Fabric
+1. **Interactive Shadow DOM UI (`<robos-ai-textarea>`)**:
+   - Real-time debounced background scanning with visual security badge (`🛡️ Secure` or `⚠️ N Sensitive`).
+   - Non-intrusive warning banner identifying detected risks.
+   - 1-Click **"✦ Auto-Redact"** button that immediately masks sensitive values in place.
+2. **Harness & Agent Router Interceptions**:
+   - `AgentSession.start()` and `EmbeddedHarnessRouter.runTask()` intercept all prompts before transmission to Claude Code, GitHub Copilot CLI, Gemini CLI, or Antigravity.
+   - In `redact` mode (default), sensitive values are automatically replaced with safe masks (`[REDACTED_AWS_ACCESS_KEY]`, `[REDACTED_CREDIT_CARD]`, etc.) while preserving prompt semantics.
+   - In `block` mode, execution aborts with a `PromptSecurityError` and a security violation notice.
+3. **Audit Logging & Preferences**:
+   - Every scan detection and redaction event is logged to `~/.config/robos/prompt-security-audit.json`.
+   - Desktop preferences (`packages/robos-preferences`) allow teams to configure enforcement policy (`redact`, `block`, `warn`, `audit-only`, `off`), entropy thresholds, and custom allowlists/blocklists.
+4. **Knowledge Graph Registration**:
+   - Registered as `urn:robos:security:prompt-security-guard` in `.robos/kgraphs/core-platform/package.jsonld` under OSLC Architecture Management.
 
 ---
 
