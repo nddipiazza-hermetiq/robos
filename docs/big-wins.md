@@ -989,7 +989,7 @@ function filterWin8Apps() {
       emptyEl.style.display = 'block';
       gridEl.style.display = 'none';
     } else {
-      emptyEl.style.display = 'grid';
+      emptyEl.style.display = 'none';
       gridEl.style.display = 'grid';
     }
   }
