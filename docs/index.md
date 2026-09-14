@@ -601,7 +601,7 @@ RobOS was created and refined through equal agentic collaboration among all four
 
 ---
 
-## Installation & Getting Started
+## Installation / Getting Started
 
 Choose the path that fits your development workflow:
 
@@ -647,7 +647,7 @@ infra/desktop/run.sh
 
 ## Next Steps
 
-- **[Get Started Guide]({{ site.baseurl }}{% link getting-started.md %})**: Set up your development environment and launch your first RobOS app.
+- **[Installation / Getting Started Guide]({{ site.baseurl }}{% link getting-started.md %})**: Set up your development environment and launch your first RobOS app.
 - **[App Development Flow]({{ site.baseurl }}{% link app-development-flow.md %})**: Learn the complete end-to-end development cycle.
 - **[System Architecture]({{ site.baseurl }}{% link architecture.md %})**: Dive deep into the 8 architectural pillars and the Dual-State Comparison Engine.
 - **[Browse All 30+ Apps]({{ site.baseurl }}{% link apps.md %})**: Explore the full catalog of RobOS developer tools.
