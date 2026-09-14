@@ -317,3 +317,25 @@ Verify the cloned indicator and commits before continuing. The wizard does not
 currently auto-discover every arbitrary directory on disk; recording the existing
 path avoids a duplicate clone. Software Center detects Copilot, Codex and Antigravity
 on PATH, including user-local installations.
+
+### Desktop notifications
+
+In Setup Wizard **Step 11**, use **Install & Start Notifications**, **Send Test
+Popup**, then **Open Notifications**. The popup and history should show the same
+setup message. The `install-notifications` RobOS skill provides the terminal
+equivalent. Installation reuses this checkout, adds user-local launchers and desktop
+login startup, and preserves history and Do Not Disturb preferences. Keep the
+checkout at the same path. A desktop login is required for visual popups.
+
+```bash
+node packages/robos-lib/notification-setup.js status
+node packages/robos-lib/notification-setup.js install
+node packages/robos-lib/notification-setup.js test
+node packages/robos-lib/notification-setup.js open
+```
+
+Verified setup, popup, and history from a real desktop session:
+
+![Notification setup in onboarding](assets/images/screenshots/notification-setup/onboarding.png)
+![RobOS popup](assets/images/screenshots/notification-setup/popup.png)
+![Matching entry in Notifications](assets/images/screenshots/notification-setup/history.png)

@@ -3,6 +3,28 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentStep = 1;
   const TOTAL_STEPS = 11;
 
+  async function refreshNotificationStatus() {
+    const state = await api.notificationStatus();
+    document.getElementById('notification-status').textContent = state.ok
+      ? `Popups: ${state.running ? 'running' : 'not running'} · Desktop login: ${state.autostart ? 'enabled' : 'not configured'}${state.dnd ? ' · Do Not Disturb enabled' : ''}`
+      : state.message;
+    document.getElementById('btn-test-notification').disabled = !state.running;
+    document.getElementById('btn-open-notifications').disabled = !state.installed;
+  }
+  for (const [id, action] of [['btn-install-notifications', 'installNotifications'], ['btn-test-notification', 'testNotification'], ['btn-open-notifications', 'openNotifications']]) {
+    document.getElementById(id).onclick = async () => {
+      const button = document.getElementById(id); button.disabled = true;
+      const output = document.getElementById('notification-result');
+      output.textContent = 'Working…';
+      try {
+        const result = await api[action]();
+        output.textContent = result.message || (result.ok ? 'Ready. Send a test popup and verify it in Notifications.' : 'Notification setup failed.');
+        await refreshNotificationStatus();
+      } catch (error) { output.textContent = error.message; }
+      finally { if (action === 'installNotifications') button.disabled = false; }
+    };
+  }
+
   // DOM Elements
   const stepItems = document.querySelectorAll('.step-nav-item');
   const stepPanels = document.querySelectorAll('.step-panel');
@@ -144,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentStep === 5) refreshSshStatus();
     if (currentStep === 6) refreshBrowserStatus();
     if (currentStep === 7) refreshGhStatus();
+    if (currentStep === 11) refreshNotificationStatus();
     if (currentStep === 8) loadAiAgentConfig();
     if (currentStep === 9) loadGitProjectsList();
     if (currentStep === 10) loadDevAppsCatalog();

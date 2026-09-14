@@ -159,6 +159,7 @@ plugins/
 | **`e2e-driven-dev`** | `/e2e-driven-dev`, `/do-e2e-driven-dev` | Perform task development driven by narrated E2E tests and video generation |
 | **`import-company-kgraph`** | `/import-company-kgraph` | Import tracked local sources with provenance into an explicit workspace; review and refine revisions iteratively |
 | **`ide-java`** | `/ide-java` | Automate Java in IntelliJ IDEA via port 63343 IPC & MCP: secret run configs, breakpoints, thread inspection, ephemeral workspaces |
+| **`install-notifications`** | `/install-notifications` | Install popup daemon, desktop login startup, and Notifications history without resetting preferences |
 | **`install-dev-deps`** | `/install-dev-deps` | Audit and install host dev dependencies (QEMU, Electron, Java, Node) |
 | **`manage-robos-skill`** | `/manage-robos-skill` | Add, update, or remove a RobOS skill in the marketplace |
 | **`read-error-logs`** | `/read-error-logs` | Inspect centralized RobOS error stream and system crashes |

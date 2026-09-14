@@ -17,6 +17,9 @@ try {
   }
 } catch {}
 
+// Each companion app needs its own Electron instance lock; shared history stays in ~/.config/robos.
+app.setPath('userData', path.join(os.homedir(), '.config', 'robos', 'electron', 'notifications'));
+
 // Single-instance lock (bypassed in test mode)
 if (process.env.ROBOS_TEST !== '1' && process.env.ROBOS_TEST_MODE !== '1') {
   const gotLock = app.requestSingleInstanceLock();
