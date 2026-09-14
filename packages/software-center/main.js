@@ -34,12 +34,13 @@ const TOOLS = [
     name: 'GitHub Copilot CLI',
     description: 'AI-powered CLI assistant from GitHub',
     category: 'AI',
-    source: 'npm (@githubnext/github-copilot-cli)',
-    checkCmd: 'npm list -g @githubnext/github-copilot-cli 2>/dev/null | grep copilot',
-    installCmd: 'sudo npm install -g @githubnext/github-copilot-cli',
-    uninstallCmd: 'sudo npm uninstall -g @githubnext/github-copilot-cli',
+    source: 'npm (@github/copilot)',
+    checkCmd: 'command -v copilot',
+    installCmd: 'sudo npm install -g @github/copilot',
+    uninstallCmd: 'sudo npm uninstall -g @github/copilot',
   },
 
+  { id: 'antigravity-cli', name: 'Antigravity CLI', description: 'Google Antigravity CLI; reuses existing settings and login', category: 'AI', source: 'antigravity.google/cli/install.sh', checkCmd: 'command -v agy', installCmd: 'curl -fsSL https://antigravity.google/cli/install.sh | bash' },
   {
     id: 'openai-codex',
     name: 'OpenAI Codex CLI',
@@ -437,7 +438,7 @@ app.whenReady().then(() => {
   });
   ipcMain.handle('uninstall-tool', (_e, toolId) => {
     const tool = TOOLS.find(t => t.id === toolId);
-    if (tool) runInstall(tool, 'uninstall');
+    if (tool?.uninstallCmd) runInstall(tool, 'uninstall');
   });
   ipcMain.handle('get-install-log', (_e, toolId) => {
     return installLogs[toolId]?.log || '';

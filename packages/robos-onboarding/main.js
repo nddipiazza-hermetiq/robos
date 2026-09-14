@@ -1,6 +1,6 @@
-const { detectGemini, registerGemini } = require('../robos-lib/existing-gemini');
+const { detectAntigravity, registerAntigravity } = require('../robos-lib/existing-antigravity');
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
-registerGemini(ipcMain);
+registerAntigravity(ipcMain);
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -347,9 +347,7 @@ ipcMain.handle('add-ssh-key-to-github', async () => {
 });
 
 ipcMain.handle('test-ssh-connection', async () => {
-  const testOut = runSync('ssh -T -o StrictHostKeyChecking=accept-new git@github.com 2>&1', 15000);
-  const ok = testOut.includes('successfully authenticated');
-  return { ok, output: testOut };
+  return require('../robos-lib/github-ssh-check').checkGitHubSsh();
 });
 
 // ── Step 3: Git Config IPC ──
@@ -586,7 +584,8 @@ ipcMain.handle('test-agent-connection', async (_, { agentId, apiKey }) => {
 // ── Software Center IPC ──
 const SOFTWARE_TOOLS = [
   { id: 'claude-cli', name: 'Claude CLI', description: 'Anthropic Claude Code — AI coding assistant', category: 'AI', source: 'npm (@anthropic-ai/claude-code)', checkCmd: 'which claude', installCmd: 'sudo npm install -g @anthropic-ai/claude-code', uninstallCmd: 'sudo npm uninstall -g @anthropic-ai/claude-code' },
-  { id: 'github-copilot-cli', name: 'GitHub Copilot CLI', description: 'AI-powered CLI assistant from GitHub', category: 'AI', source: 'npm (@githubnext/github-copilot-cli)', checkCmd: 'npm list -g @githubnext/github-copilot-cli 2>/dev/null | grep copilot', installCmd: 'sudo npm install -g @githubnext/github-copilot-cli', uninstallCmd: 'sudo npm uninstall -g @githubnext/github-copilot-cli' },
+  { id: 'github-copilot-cli', name: 'GitHub Copilot CLI', description: 'AI-powered CLI assistant from GitHub', category: 'AI', source: 'npm (@github/copilot)', checkCmd: 'command -v copilot', installCmd: 'sudo npm install -g @github/copilot', uninstallCmd: 'sudo npm uninstall -g @github/copilot' },
+  { id: 'antigravity-cli', name: 'Antigravity CLI', description: 'Google Antigravity CLI; reuses existing settings and login', category: 'AI', source: 'antigravity.google/cli/install.sh', checkCmd: 'command -v agy', installCmd: 'curl -fsSL https://antigravity.google/cli/install.sh | bash' },
   { id: 'openai-codex', name: 'OpenAI Codex CLI', description: 'OpenAI Codex — AI coding agent in your terminal', category: 'AI', source: 'npm (@openai/codex)', checkCmd: 'which codex', installCmd: 'sudo npm install -g @openai/codex && sudo apt-get install -y sqlite3', uninstallCmd: 'sudo npm uninstall -g @openai/codex' },
   { id: 'vscode', name: 'VS Code', description: 'Visual Studio Code — lightweight code editor', category: 'IDE', source: 'code.visualstudio.com (deb package)', checkCmd: 'which code', installCmd: 'wget -qO /tmp/vscode.deb "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64" && sudo dpkg -i /tmp/vscode.deb || sudo apt-get install -f -y && rm -f /tmp/vscode.deb && sudo cp /usr/share/applications/code.desktop /usr/share/applications/code.desktop.bak 2>/dev/null', uninstallCmd: 'sudo apt-get remove -y code && sudo rm -f /usr/share/applications/code.desktop' },
   { id: 'google-chrome', name: 'Google Chrome', description: 'Google Chrome browser — downloaded directly from Google', category: 'Browser', source: 'dl.google.com (deb package)', checkCmd: 'which google-chrome || which google-chrome-stable', installCmd: 'wget -qO /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && sudo dpkg -i /tmp/google-chrome.deb; sudo apt-get install -f -y; rm -f /tmp/google-chrome.deb', uninstallCmd: 'sudo apt-get remove -y google-chrome-stable' },
@@ -614,7 +613,7 @@ ipcMain.handle('install-tool', (_e, toolId) => {
 });
 ipcMain.handle('uninstall-tool', (_e, toolId) => {
   const tool = SOFTWARE_TOOLS.find(t => t.id === toolId);
-  if (!tool) return;
+  if (!tool || !tool.uninstallCmd) return;
   installLogs[tool.id] = { installing: true, log: `Uninstalling ${tool.name}...\n` };
   const proc = spawn('bash', ['-c', tool.uninstallCmd], { env: { ...process.env, DEBIAN_FRONTEND: 'noninteractive' } });
   proc.stdout.on('data', d => { installLogs[tool.id].log += d.toString(); if (win) win.webContents.send('install-progress', { toolId, text: d.toString(), done: false }); });
@@ -660,13 +659,13 @@ ipcMain.handle('detect-providers', async () => {
   const cxInstalled = !!(cxVer && !cxVer.includes('not found'));
   let cxAuth = false, cxUser = '';
   if (cxInstalled) {
-    const st = runSync('codex login status 2>&1');
+    const st = runSync('codex login status 2>&1') || '';
     cxAuth = st.toLowerCase().includes('logged in');
     const m = st.match(/logged in as\s+(\S+)/i); if (m) cxUser = m[1];
   }
   providers.push({ id: 'codex', name: 'Codex', installed: cxInstalled, authenticated: cxAuth, version: (cxVer || '').split('\n')[0], user: cxUser });
 
-  providers.push(detectGemini());
+  providers.push(detectAntigravity());
   return providers;
 });
 
@@ -699,7 +698,7 @@ ipcMain.handle('copilot-sessions', () => {
 });
 ipcMain.handle('copilot-delete-session', (_, id) => { try { fs.rmSync(path.join(COPILOT_SESSION_DIR, id), { recursive: true, force: true }); } catch {} });
 ipcMain.handle('copilot-launch-terminal', (_, id, extraArgs, cwd) => {
-  const parts = ['/usr/bin/copilot'];
+  const parts = ['copilot'];
   if (Array.isArray(extraArgs)) parts.push(...extraArgs);
   if (id) parts.push('--resume', id);
   const cwdPrefix = (cwd && typeof cwd === 'string') ? `cd "${cwd.replace(/"/g, '\\"')}" && ` : '';

@@ -1,7 +1,7 @@
-const { detectGemini, registerGemini } = require('../robos-lib/existing-gemini');
+const { detectAntigravity, registerAntigravity } = require('../robos-lib/existing-antigravity');
 'use strict';
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
-registerGemini(ipcMain);
+registerAntigravity(ipcMain);
 const path = require('path');
 const fs   = require('fs');
 const os   = require('os');
@@ -163,17 +163,8 @@ ipcMain.handle('detect-providers', async () => {
     copilotRes,
     claudeRes,
     codexRes,
-    detectGemini(),
-    {
-      id: 'antigravity',
-      name: 'Antigravity / Gemini CLI',
-      installed: true,
-      authenticated: true,
-      version: 'Antigravity 2.0 (Gemini 2.5 Pro)',
-      user: 'developer@robos.internal',
-      mcpConnected: true,
-      mcpServer: 'mcpServers.robos (robos-mcp-router)',
-    },
+    detectAntigravity(),
+
   ];
 });
 
@@ -228,7 +219,7 @@ ipcMain.handle('copilot-delete-session', (_, sessionId) => {
 });
 
 ipcMain.handle('copilot-launch-terminal', (_, sessionId, extraArgs, cwd) => {
-  const parts = ['/usr/bin/copilot'];
+  const parts = ['copilot'];
   if (Array.isArray(extraArgs) && extraArgs.length) parts.push(...extraArgs);
   if (sessionId) parts.push('--resume', sessionId);
   const dqEscape = s => String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$').replace(/`/g, '\\`');
