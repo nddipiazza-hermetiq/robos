@@ -387,12 +387,11 @@ async function selectProvider(id) {
     await renderCopilotDetail(provider);
   } else if (id === 'claude-code') {
     await renderClaudeDetail(provider);
-  } else if (id === 'gemini') {
-    await renderGeminiDetail(provider);
+
   } else if (id === 'codex') {
     await renderCodexDetail(provider);
   } else if (id === 'antigravity') {
-    await renderAntigravityDetail(provider);
+    await renderExistingAntigravityDetail(provider);
   }
 }
 
@@ -1386,7 +1385,7 @@ async function renderCodexDetail(provider) {
           <span class="info-label">codex CLI</span>
           <span class="info-value mono">${esc(provider.version || 'not installed')}</span>
           <span class="info-label">Logged in as</span>
-          <span class="info-value">${esc(provider.user || 'not logged in')}</span>
+          <span class="info-value">${esc(provider.user || (provider.authenticated ? 'Existing authenticated session' : 'not logged in'))}</span>
           <span class="info-label">Status</span>
           <span class="info-value" style="color:${provider.authenticated ? '#3fb950' : provider.installed ? '#e3b341' : '#f85149'}">
             ${provider.authenticated ? 'Connected' : provider.installed ? 'Not authenticated' : 'Not installed'}
@@ -1748,7 +1747,7 @@ async function renderAntigravityDetail(provider) {
       await window.agents.setActiveProvider('antigravity');
       activeProviderId = 'antigravity';
       renderSidebar();
-      await renderAntigravityDetail(provider);
+      await renderExistingAntigravityDetail(provider);
     };
   }
 
@@ -2270,23 +2269,23 @@ document.addEventListener('click', () => {
 init().catch(err => console.error('[agents-manager] init error:', err));
 
 // Existing CLI onboarding: detection never resets credentials or picks a model.
-async function renderGeminiDetail(provider) {
+async function renderExistingAntigravityDetail(provider) {
   document.getElementById('provider-detail').innerHTML = `
-    <div class="detail-header"><h2>Gemini CLI</h2></div>
+    <div class="detail-header"><h2>Antigravity CLI</h2></div>
     <div class="detail-section"><h3>Existing installation</h3>
       <p>CLI: ${esc(provider.version || 'Not detected')}</p>
       <p>Authentication configuration: ${esc(provider.authType || 'Not detected')}</p>
-      <p id="gemini-status">${esc(provider.status)}</p>
-      <p>Your existing ~/.gemini settings, gateway, credentials and model preferences are preserved. Configuration detection alone does not prove a working connection.</p>
-      <button class="btn btn-secondary" id="gemini-test" ${provider.installed ? '' : 'disabled'}>Test existing connection</button>
-      <button class="btn btn-primary" id="gemini-terminal" ${provider.installed ? '' : 'disabled'}>Open Gemini CLI Terminal</button>
+      <p id="agy-existing-status">${esc(provider.status)}</p>
+      <p>Your existing Antigravity settings, keyring credentials and model preferences are preserved. Click Test existing connection to verify access without changing authentication.</p>
+      <button class="btn btn-secondary" id="agy-existing-test" ${provider.installed ? '' : 'disabled'}>Test existing connection</button>
+      <button class="btn btn-primary" id="agy-existing-terminal" ${provider.installed ? '' : 'disabled'}>Open Antigravity CLI Terminal</button>
     </div>`;
-  document.getElementById('gemini-terminal').onclick = () => window.agents.geminiLaunchTerminal();
-  document.getElementById('gemini-test').onclick = async () => {
-    const button = document.getElementById('gemini-test'); button.disabled = true;
-    document.getElementById('gemini-status').textContent = 'Testing existing connection…';
-    try { const result = await window.agents.geminiCheck(); document.getElementById('gemini-status').textContent = result.message; }
-    catch { document.getElementById('gemini-status').textContent = 'Connection check unavailable; existing configuration preserved.'; }
+  document.getElementById('agy-existing-terminal').onclick = () => window.agents.existingAntigravityLaunchTerminal();
+  document.getElementById('agy-existing-test').onclick = async () => {
+    const button = document.getElementById('agy-existing-test'); button.disabled = true;
+    document.getElementById('agy-existing-status').textContent = 'Testing existing connection…';
+    try { const result = await window.agents.existingAntigravityCheck(); document.getElementById('agy-existing-status').textContent = result.message; }
+    catch { document.getElementById('agy-existing-status').textContent = 'Connection check unavailable; existing configuration preserved.'; }
     finally { button.disabled = false; }
   };
 }

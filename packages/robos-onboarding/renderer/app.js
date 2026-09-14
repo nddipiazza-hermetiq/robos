@@ -460,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logOutput(5, 'Testing SSH connection to GitHub...');
     try {
       const res = await api.testSshConnection();
-      logOutput(5, res.detail || (res.ok ? 'Connection successful!' : 'SSH authentication failed.'), !res.ok);
+      logOutput(5, res.output || res.detail || (res.ok ? 'Connection successful!' : 'SSH authentication failed.'), !res.ok);
     } catch (e) {
       logOutput(5, `Error: ${e.message}`, true);
     }

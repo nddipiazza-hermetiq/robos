@@ -293,3 +293,27 @@ xvfb-run -a node --test packages/robos-test/tests/e2e/topology-db-kube-lifecycle
 - [**System Architecture**]({{ site.baseurl }}{% link architecture.md %}) — Explore the 8-pillar SDLC architecture and Knowledge Graph.
 - [**App Suite Catalog**]({{ site.baseurl }}{% link apps.md %}) — Explore all 30+ applications.
 - [**💡 Feature Ideas Store on GitHub**](https://github.com/nddipiazza/robos/tree/main/docs/ideas) — Explore raw ideas, structured specs, and community feature requests.
+
+### Reusing an existing development workstation
+
+The setup wizard should reuse existing GPG/pass state, SSH keys, browser,
+GitHub authentication, CLI settings and repository checkouts. Do not initialize a
+new password store, generate another key, reinstall a CLI, or clone a repository
+just because an optional integration has not been configured in RobOS yet.
+
+In **AI Agents**, Copilot and Codex use their existing CLI sessions.
+**Antigravity CLI** detects the installed `agy` binary and reuses its own
+`~/.gemini/antigravity-cli` settings and operating-system keyring. **Test existing
+connection** reads available models through `agy models`; a detected binary alone
+is not proof that login works. No credentials are copied and no model is selected.
+The [official installation/auth guide](https://antigravity.google/docs/cli/install/)
+describes native keyring reuse and installation when `agy` is actually missing.
+Replacing the older Gemini CLI must preserve `~/.gemini`, since Antigravity also
+stores configuration beneath that directory.
+
+In **Git Projects**, add the repository URL with **Clone project now** unchecked,
+then use **Edit → Local Path → Save Changes** to point at the existing checkout.
+Verify the cloned indicator and commits before continuing. The wizard does not
+currently auto-discover every arbitrary directory on disk; recording the existing
+path avoids a duplicate clone. Software Center detects Copilot, Codex and Antigravity
+on PATH, including user-local installations.

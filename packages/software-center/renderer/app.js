@@ -75,6 +75,8 @@ function renderTools() {
       btnContainer.appendChild(logBtn);
     } else if (tool.installed) {
       const btn = document.createElement('button');
+      btn.disabled = !tool.uninstallCmd;
+      btn.title = tool.uninstallCmd ? '' : 'Managed by its existing installation';
       btn.className = 'tool-btn uninstall';
       btn.textContent = 'Uninstall';
       btn.addEventListener('click', () => doInstall(tool.id, 'uninstall'));
