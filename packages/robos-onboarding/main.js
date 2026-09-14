@@ -1,4 +1,6 @@
+const { detectGemini, registerGemini } = require('../robos-lib/existing-gemini');
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+registerGemini(ipcMain);
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -664,6 +666,7 @@ ipcMain.handle('detect-providers', async () => {
   }
   providers.push({ id: 'codex', name: 'Codex', installed: cxInstalled, authenticated: cxAuth, version: (cxVer || '').split('\n')[0], user: cxUser });
 
+  providers.push(detectGemini());
   return providers;
 });
 
