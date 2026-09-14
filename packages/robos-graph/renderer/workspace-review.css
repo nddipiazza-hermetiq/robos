@@ -1,0 +1,19 @@
+#workspace-review { line-height: 1.5; }
+#workspace-review summary { cursor: pointer; padding: 8px 0; color: #8bd5e7; }
+#workspace-review h3, #workspace-review h4, #workspace-review h5 { margin: 8px 0; }
+#workspace-review p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.review-cards { display: grid; gap: 10px; }
+.review-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; margin: 10px 0; overflow-wrap: anywhere; }
+.review-muted, .review-id { color: #9ba9b8; }
+.review-id { font: 12px monospace; }
+.review-warning { color: #f5c66b; }
+.review-added { color: #7ee2a8; }
+.review-fields { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(0, 3fr); gap: 6px 14px; margin: 8px 0; }
+.review-fields dt { color: #9ba9b8; }
+.review-fields dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.review-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.review-comparison > div { min-width: 0; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px; }
+.review-comparison strong { display: block; color: #8bd5e7; margin-bottom: 8px; }
+.review-comparison span { white-space: pre-wrap; }
+.review-raw { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 300px; overflow: auto; }
+@media (max-width: 700px) { .review-comparison, .review-fields { grid-template-columns: 1fr; } }

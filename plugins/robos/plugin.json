@@ -11,6 +11,10 @@
   "homepage": "https://github.com/nddipiazza/robos",
   "repository": "https://github.com/nddipiazza/robos",
   "skills": [
+    "view-task-plan",
+    "update-project-plan",
+    "remove-project-plan",
+    "plan-before-implement",
     "add-ai-text-area-to-app",
     "add-install-step",
     "app-snapshot",
@@ -39,6 +43,10 @@
     "vm-status"
   ],
   "commands": [
+    "view-task-plan",
+    "update-project-plan",
+    "remove-project-plan",
+    "plan-before-implement",
     "add-ai-text-area-to-app",
     "add-install-step",
     "app-snapshot",

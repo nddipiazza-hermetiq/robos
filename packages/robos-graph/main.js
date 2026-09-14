@@ -33,6 +33,10 @@ try {
 let store = new SDLCKnowledgeGraphStore();
 const { WorkspaceReview } = require('./lib/workspace-review');
 let workspaceReview = store.workspace ? new WorkspaceReview(store.workspace.root) : null;
+require('../task-planner/lib/project-plan').registerPlanIPC(ipcMain, () => {
+  if (!store.workspace) throw new Error('Open an explicit graph workspace to view project plans');
+  return store.workspace.root;
+});
 let testFabric = null;
 if (LocalTestFabric && !store.workspace) {
   testFabric = new LocalTestFabric();
@@ -77,7 +81,8 @@ app.whenReady().then(() => {
     event.preventDefault();
     win.webContents.send('graph-navigate', command === 'browser-backward' ? 'back' : 'forward');
   });
-  win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  const planArg=process.argv.indexOf('--plan-task');
+  win.loadFile(path.join(__dirname, 'renderer', 'index.html'), planArg>=0 ? {query:{planTask:process.argv[planArg+1]||''}} : {});
   win.setMenuBarVisibility(false);
 
   win.once('ready-to-show', () => {
