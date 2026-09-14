@@ -44,6 +44,8 @@ contextBridge.exposeInMainWorld('onboardingAPI', {
 
 // 2. Embedded Agents Manager API
 contextBridge.exposeInMainWorld('agents', {
+  geminiLaunchTerminal: () => ipcRenderer.invoke('gemini-launch-terminal'),
+  geminiCheck: () => ipcRenderer.invoke('gemini-check'),
   detectProviders:      ()     => ipcRenderer.invoke('detect-providers'),
   getActiveProvider:    ()     => ipcRenderer.invoke('get-active-provider'),
   setActiveProvider:    (id)   => ipcRenderer.invoke('set-active-provider', id),

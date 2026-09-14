@@ -1,6 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('agents', {
+  geminiLaunchTerminal: () => ipcRenderer.invoke('gemini-launch-terminal'),
+  geminiCheck: () => ipcRenderer.invoke('gemini-check'),
   // Provider detection
   detectProviders:      ()     => ipcRenderer.invoke('detect-providers'),
   getActiveProvider:    ()     => ipcRenderer.invoke('get-active-provider'),

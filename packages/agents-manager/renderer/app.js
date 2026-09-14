@@ -387,6 +387,8 @@ async function selectProvider(id) {
     await renderCopilotDetail(provider);
   } else if (id === 'claude-code') {
     await renderClaudeDetail(provider);
+  } else if (id === 'gemini') {
+    await renderGeminiDetail(provider);
   } else if (id === 'codex') {
     await renderCodexDetail(provider);
   } else if (id === 'antigravity') {
@@ -2266,3 +2268,25 @@ document.addEventListener('click', () => {
 });
 
 init().catch(err => console.error('[agents-manager] init error:', err));
+
+// Existing CLI onboarding: detection never resets credentials or picks a model.
+async function renderGeminiDetail(provider) {
+  document.getElementById('provider-detail').innerHTML = `
+    <div class="detail-header"><h2>Gemini CLI</h2></div>
+    <div class="detail-section"><h3>Existing installation</h3>
+      <p>CLI: ${esc(provider.version || 'Not detected')}</p>
+      <p>Authentication configuration: ${esc(provider.authType || 'Not detected')}</p>
+      <p id="gemini-status">${esc(provider.status)}</p>
+      <p>Your existing ~/.gemini settings, gateway, credentials and model preferences are preserved. Configuration detection alone does not prove a working connection.</p>
+      <button class="btn btn-secondary" id="gemini-test" ${provider.installed ? '' : 'disabled'}>Test existing connection</button>
+      <button class="btn btn-primary" id="gemini-terminal" ${provider.installed ? '' : 'disabled'}>Open Gemini CLI Terminal</button>
+    </div>`;
+  document.getElementById('gemini-terminal').onclick = () => window.agents.geminiLaunchTerminal();
+  document.getElementById('gemini-test').onclick = async () => {
+    const button = document.getElementById('gemini-test'); button.disabled = true;
+    document.getElementById('gemini-status').textContent = 'Testing existing connection…';
+    try { const result = await window.agents.geminiCheck(); document.getElementById('gemini-status').textContent = result.message; }
+    catch { document.getElementById('gemini-status').textContent = 'Connection check unavailable; existing configuration preserved.'; }
+    finally { button.disabled = false; }
+  };
+}

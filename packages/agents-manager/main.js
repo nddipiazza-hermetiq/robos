@@ -1,5 +1,7 @@
+const { detectGemini, registerGemini } = require('../robos-lib/existing-gemini');
 'use strict';
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
+registerGemini(ipcMain);
 const path = require('path');
 const fs   = require('fs');
 const os   = require('os');
@@ -161,6 +163,7 @@ ipcMain.handle('detect-providers', async () => {
     copilotRes,
     claudeRes,
     codexRes,
+    detectGemini(),
     {
       id: 'antigravity',
       name: 'Antigravity / Gemini CLI',
