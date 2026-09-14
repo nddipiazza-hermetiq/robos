@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const fs   = require('fs');
 const os   = require('os');
@@ -344,6 +344,7 @@ ipcMain.handle('dismiss-all', () => {
 });
 
 function checkForNewNotifications() {
+  updateTrayMenu();
   const notifs = loadNotifications();
   const newOnes = notifs.filter(n => !knownIds.has(n.id) && !n.read);
   newOnes.forEach(n => {
@@ -353,9 +354,39 @@ function checkForNewNotifications() {
 }
 
 let debugWin = null;
+let tray = null;
+function updateTrayMenu() {
+  if (!tray) return;
+  const unread = loadNotifications().filter(n => !n.read).length;
+  tray.setToolTip(`RobOS Notifications — ${unread} unread`);
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: `Open Notifications (${unread} unread)`, click: openNotificationHistory },
+    { label: 'Do Not Disturb', type: 'checkbox', checked: !!loadPrefs().dnd,
+      click: item => { const prefs = loadPrefs(); prefs.dnd = item.checked; savePrefs(prefs); updateTrayMenu(); } },
+    { type: 'separator' },
+    { label: 'Quit RobOS Notifications', click: () => app.quit() },
+  ]));
+}
+function openNotificationHistory() {
+  const { spawn } = require('child_process');
+  const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
+  const child = spawn(process.execPath, [path.join(__dirname, '../notifications/main.js'), '--no-sandbox'],
+    { detached: true, stdio: 'ignore', env });
+  child.on('error', error => console.error('Cannot open Notifications:', error.message));
+  child.unref();
+}
+function createNotificationTray() {
+  const icon = nativeImage.createFromPath(path.join(__dirname, 'tray-icon.png'));
+  if (icon.isEmpty()) throw Error('RobOS notification tray icon is missing.');
+  tray = new Tray(icon);
+  tray.on('click', openNotificationHistory);
+  updateTrayMenu();
+}
+
 
 app.on('ready', () => {
   if (app.dock) app.dock.hide();
+  createNotificationTray();
 
   // Create dashboard/status window for demo and test assertions
   debugWin = new BrowserWindow({

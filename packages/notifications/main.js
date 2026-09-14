@@ -31,6 +31,13 @@ app.commandLine.appendSwitch('disable-gpu');
 app.commandLine.appendSwitch('disable-dev-shm-usage');
 
 let win = null;
+app.on('second-instance', () => {
+  if (win && !win.isDestroyed()) {
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+  }
+});
 
 const HOME_DIR   = process.env.HOME || os.homedir();
 const CONFIG_DIR = path.join(HOME_DIR, '.config', 'robos');
