@@ -1,6 +1,6 @@
 ---
 name: install-notifications
-description: Install or verify RobOS desktop notification popups, login startup, and the Notifications history app on an existing Linux workstation. Reuses the existing RobOS checkout and preserves history and preferences.
+description: Install or verify RobOS desktop notification panel bell, popups, login startup, and the Notifications history app on an existing Linux workstation. Reuses the existing RobOS checkout and preserves history and preferences.
 ---
 
 # Install RobOS Notifications
@@ -46,3 +46,11 @@ Startup failures are logged in `~/.config/robos/notification-service.log`.
 Report runtime status, login startup status, and the observed popup/history result.
 A configured autostart entry is not proof of a successful future login; verify that
 on the next normal desktop login without forcing the user to log out now.
+
+The running popup daemon also owns a permanent RobOS bell in the desktop panel.
+Click it (or choose **Open Notifications** from its menu) to open history.
+On Ubuntu GNOME, check `gnome-extensions list --enabled` for
+`ubuntu-appindicators@ubuntu.com` if the bell is absent. Do not claim panel
+visibility from a popup screenshot: verify the StatusNotifierItem registration
+and the desktop panel separately. Other GNOME distributions may need an
+AppIndicator extension; identify the desktop before installing one.

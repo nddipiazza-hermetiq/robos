@@ -339,3 +339,7 @@ Verified setup, popup, and history from a real desktop session:
 ![Notification setup in onboarding](assets/images/screenshots/notification-setup/onboarding.png)
 ![RobOS popup](assets/images/screenshots/notification-setup/popup.png)
 ![Matching entry in Notifications](assets/images/screenshots/notification-setup/history.png)
+
+The popup daemon also places a permanent **RobOS bell** in the desktop panel.
+Its menu opens Notifications history and controls Do Not Disturb. Ubuntu GNOME
+uses its AppIndicator extension to display this bell.
