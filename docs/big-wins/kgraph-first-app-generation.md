@@ -2,7 +2,7 @@
 title: KGraph-First App Generation & Modular Architecture
 layout: default
 parent: RobOS Main Wins
-nav_order: 9
+nav_order: 6
 permalink: /big-wins/kgraph-first-app-generation.html
 ---
 

@@ -2,7 +2,7 @@
 title: Agent-Agnostic Open Framework
 layout: default
 parent: RobOS Main Wins
-nav_order: 5
+nav_order: 9
 permalink: /big-wins/agent-agnostic-framework.html
 ---
 

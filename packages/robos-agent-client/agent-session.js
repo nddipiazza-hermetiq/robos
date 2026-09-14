@@ -17,6 +17,18 @@ const SESSION_DIR = path.join(
   '.config', 'robos', 'agent-sessions',
 );
 
+let promptSecurity = null;
+try {
+  const libPaths = [
+    process.env.ROBOS_LIB_PATH && path.join(process.env.ROBOS_LIB_PATH, 'prompt-security'),
+    path.resolve(__dirname, '..', 'robos-lib', 'prompt-security'),
+    '/usr/local/share/robos/robos-lib/prompt-security',
+  ].filter(Boolean);
+  for (const p of libPaths) {
+    try { promptSecurity = require(p); break; } catch {}
+  }
+} catch {}
+
 // ── AgentSession ─────────────────────────────────────────────────────────────
 
 class AgentSession extends EventEmitter {
@@ -25,6 +37,8 @@ class AgentSession extends EventEmitter {
    * @param {string} opts.agentId   — e.g. 'claude' or 'copilot'
    * @param {object} opts.backend   — backend instance (claude-backend or copilot-backend)
    * @param {string} [opts.id]      — optional session ID (auto-generated if omitted)
+   * @param {object} [opts.securityGuard] — custom PromptSecurityGuard instance
+   * @param {boolean} [opts.enableSecurity] — whether prompt security scan is enabled (default true)
    */
   constructor(opts = {}) {
     super();
@@ -39,6 +53,9 @@ class AgentSession extends EventEmitter {
     this.exitCode = null;
     this._process = null;
     this._outputBuffer = '';
+    this.enableSecurity = opts.enableSecurity !== false;
+    this.securityGuard = opts.securityGuard || (promptSecurity ? new promptSecurity.PromptSecurityGuard(opts.securityOptions) : null);
+    this.securityFindings = [];
   }
 
   /**
@@ -53,17 +70,37 @@ class AgentSession extends EventEmitter {
     if (this.status === 'running') throw new Error('Session already running');
     if (!this.backend) throw new Error('No backend configured');
 
+    let effectivePrompt = prompt;
+    if (this.enableSecurity && this.securityGuard) {
+      const scanResult = this.securityGuard.scan(prompt);
+      this.securityFindings = scanResult.findings;
+      this.emit('security-scan', scanResult);
+
+      if (!scanResult.allowed) {
+        const err = new Error(scanResult.summary);
+        err.name = 'PromptSecurityError';
+        err.findings = scanResult.findings;
+        this.status = 'error';
+        this.emit('error', err);
+        throw err;
+      }
+      if (scanResult.mode === 'redact' && scanResult.findings.length > 0) {
+        effectivePrompt = scanResult.redactedText;
+      }
+    }
+
     this.status = 'running';
     this.startedAt = Date.now();
     this._outputBuffer = '';
 
     try {
-      this._process = this.backend.spawn(workspaceDir, contextFiles, prompt);
+      this._process = this.backend.spawn(workspaceDir, contextFiles, effectivePrompt);
     } catch (err) {
       this.status = 'error';
       this.emit('error', err);
       return this;
     }
+
 
     if (this._process && this._process.stdout) {
       this._process.stdout.on('data', (chunk) => {

@@ -66,6 +66,8 @@ RobOS turns rough thoughts into executable software blueprints through a 4-stage
 | **First-Class KGraph Object for Prompt & Run Logging** | [raw note](https://github.com/nddipiazza/robos/blob/main/docs/ideas/inbox/prompt-knowledge-graph-logging.txt) | [feature spec](https://github.com/nddipiazza/robos/blob/main/docs/ideas/specs/prompt-knowledge-graph-logging.md) | `packages/robos-graph`, `packages/ai-prompt`, Shell Hooks |
 | **Terraform & OpenTofu Infrastructure as Code (IaC) Synthesis** | [raw note](https://github.com/nddipiazza/robos/blob/main/docs/ideas/inbox/terraform-opentofu-iac-synthesis.txt) | [feature spec](https://github.com/nddipiazza/robos/blob/main/docs/ideas/specs/terraform-opentofu-iac-synthesis.md) | `packages/kube-studio`, `packages/devops`, Git Store |
 | **Search Studio — OpenSearch, Elasticsearch, Solr & Vector Analytics** | [raw note](https://github.com/nddipiazza/robos/blob/main/docs/ideas/inbox/search-engine-and-log-analytics-studio.txt) | [feature spec](https://github.com/nddipiazza/robos/blob/main/docs/ideas/specs/search-engine-and-log-analytics-studio.md) | `packages/search-studio`, `packages/data-sources`, KGraph |
+| **RobOS KGraph Crawler** | [raw note](https://github.com/nddipiazza/robos/blob/main/docs/ideas/inbox/robos-kgraph-crawler.txt) | [feature spec](https://github.com/nddipiazza/robos/blob/main/docs/ideas/specs/robos-kgraph-crawler.md) | `packages/kgraph-crawler`, `packages/robos-graph`, Tika 4.0 Pipes, `tika-grpc` |
+
 
 ---
 

@@ -1163,3 +1163,533 @@ svg[id^="mermaid-"] text.noteText,
   text-decoration: underline;
 }
 
+/* ==========================================================================
+   Startup Showcase & 20 Big Wins Demo Page Styles (/demo)
+   ========================================================================== */
+
+.demo-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1rem 0 4rem;
+}
+
+/* Hero Section */
+.demo-hero {
+  position: relative;
+  text-align: center;
+  padding: 3.5rem 1.5rem 2.5rem;
+  margin-bottom: 2.5rem;
+  background: radial-gradient(circle at 50% 15%, rgba(0, 229, 255, 0.14) 0%, rgba(139, 92, 246, 0.08) 35%, transparent 70%);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.demo-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  border-radius: 9999px;
+  padding: 6px 18px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #00e5ff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+}
+
+.demo-pill-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #00e5ff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #00e5ff;
+  animation: demoPulse 2s infinite ease-in-out;
+}
+
+@keyframes demoPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+.demo-hero-title {
+  font-size: clamp(2.2rem, 5vw, 3.4rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  margin-bottom: 1.25rem !important;
+  letter-spacing: -0.03em !important;
+  background: linear-gradient(135deg, #ffffff 25%, #67e8f9 65%, #c084fc 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.demo-hero-subtitle {
+  font-size: clamp(1.05rem, 2vw, 1.25rem) !important;
+  color: #cbd5e1 !important;
+  max-width: 840px;
+  margin: 0 auto 2rem !important;
+  line-height: 1.6 !important;
+  font-weight: 400 !important;
+}
+
+/* Stats Ribbon */
+.demo-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  max-width: 980px;
+  margin: 0 auto 2rem;
+}
+
+.demo-stat-box {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.demo-stat-box:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 229, 255, 0.4);
+}
+
+.demo-stat-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #00e5ff;
+  display: block;
+}
+
+.demo-stat-lbl {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Sticky Category Quick-Jump Bar */
+.demo-quick-nav {
+  position: sticky;
+  top: 10px;
+  z-index: 90;
+  background: rgba(8, 11, 17, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 50px;
+  padding: 8px 12px;
+  margin: 0 auto 3rem;
+  max-width: 960px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 229, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.demo-quick-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.demo-nav-pill {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  padding: 6px 14px;
+  border-radius: 30px;
+  white-space: nowrap;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid transparent;
+  text-decoration: none !important;
+}
+
+.demo-nav-pill:hover {
+  color: #00e5ff !important;
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.3);
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+}
+
+/* Category Chapter Headers */
+.demo-cat-header {
+  margin: 4.5rem 0 2rem;
+  padding: 1.25rem 1.75rem;
+  background: linear-gradient(90deg, rgba(22, 32, 50, 0.85) 0%, rgba(13, 21, 39, 0.4) 100%);
+  border-left: 4px solid #00e5ff;
+  border-radius: 0 12px 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.demo-cat-badge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+}
+
+.demo-cat-title {
+  margin: 0 !important;
+  font-size: 1.45rem !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.demo-cat-desc {
+  margin: 0 !important;
+  font-size: 0.92rem !important;
+  color: #94a3b8 !important;
+}
+
+/* Individual 20 Win Card */
+.demo-win-card {
+  background: linear-gradient(180deg, #111827 0%, #0c101d 100%);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 16px;
+  padding: 2rem 2.25rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.demo-win-card:hover {
+  border-color: rgba(0, 229, 255, 0.45);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.55), 0 0 25px rgba(0, 229, 255, 0.12);
+}
+
+.demo-win-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.demo-win-title-wrap {
+  flex: 1;
+  min-width: 260px;
+}
+
+.demo-win-num {
+  display: inline-block;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00e5ff 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.demo-win-title {
+  margin: 0 !important;
+  font-size: 1.6rem !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.demo-win-pill {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  white-space: nowrap;
+}
+
+/* Analogy Box: Layman's Terms */
+.demo-analogy-box {
+  background: rgba(14, 165, 233, 0.07);
+  border-left: 3px solid #00e5ff;
+  border-radius: 0 10px 10px 0;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.demo-analogy-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #00e5ff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.demo-analogy-text {
+  margin: 0 !important;
+  font-size: 1.02rem !important;
+  font-style: italic;
+  color: #f1f5f9 !important;
+  line-height: 1.55 !important;
+}
+
+/* Contrast Grid: Nightmare vs Superpower */
+.demo-contrast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.demo-contrast-col {
+  border-radius: 12px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.demo-contrast-col.bad {
+  background: rgba(244, 63, 94, 0.05);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+}
+
+.demo-contrast-col.good {
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.demo-contrast-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.demo-contrast-col.bad .demo-contrast-heading {
+  color: #fb7185;
+}
+
+.demo-contrast-col.good .demo-contrast-heading {
+  color: #34d399;
+}
+
+.demo-contrast-text {
+  font-size: 0.92rem !important;
+  line-height: 1.55 !important;
+  margin: 0 !important;
+  color: #cbd5e1 !important;
+}
+
+/* Visual Bling Container */
+.demo-visual-frame {
+  margin: 1.75rem 0 1.25rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #080c14;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.demo-frame-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #0d131f;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.demo-frame-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.demo-frame-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.demo-frame-dot.red { background-color: #ef4444; }
+.demo-frame-dot.yellow { background-color: #f59e0b; }
+.demo-frame-dot.green { background-color: #10b981; }
+
+.demo-frame-title {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.demo-visual-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.demo-frame-caption {
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  background: #0d131f;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.demo-zoom-tag {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Card Footer */
+.demo-win-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.demo-roi-pill {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 4px 12px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.demo-guide-link {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #00e5ff !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.15s ease;
+}
+
+.demo-guide-link:hover {
+  transform: translateX(3px);
+  color: #67e8f9 !important;
+}
+
+/* Comparison Matrix Table */
+.demo-matrix-wrap {
+  margin: 4rem 0 3rem;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+}
+
+.demo-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.demo-matrix-table th {
+  font-family: 'Space Grotesk', sans-serif;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid rgba(0, 229, 255, 0.3);
+  color: #f8fafc;
+  font-size: 0.92rem;
+}
+
+.demo-matrix-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+}
+
+.demo-matrix-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Bottom Startup CTA */
+.demo-cta-card {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  margin: 4rem 0 1rem;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.15) 0%, rgba(139, 92, 246, 0.08) 50%, transparent 80%), #0c101d;
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.15);
+}
+
+.demo-cta-btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.75rem;
+}
+
+@media (max-width: 768px) {
+  .demo-hero {
+    padding: 2.5rem 1rem 1.75rem;
+  }
+  .demo-win-card {
+    padding: 1.25rem;
+  }
+  .demo-quick-nav {
+    border-radius: 16px;
+    padding: 6px;
+  }
+}
+
+

@@ -47,6 +47,8 @@ Welcome to the RobOS Feature Knowledgebase! This directory stores raw project id
 | **First-Class Knowledge Graph Object for Prompt & SDLC Prompt Run Logging** | [raw note](inbox/prompt-knowledge-graph-logging.txt) | [feature spec](specs/prompt-knowledge-graph-logging.md) | Draft | `packages/robos-graph`, `packages/ai-prompt`, `packages/dev-central`, `packages/desktop-agents`, Tilix/Shell hooks, Git Store (`.robos/prompts/`, Modular KGraph Packages) |
 | **Terraform & OpenTofu Infrastructure as Code (IaC) Synthesis** | [raw note](inbox/terraform-opentofu-iac-synthesis.txt) | [feature spec](specs/terraform-opentofu-iac-synthesis.md) | Draft | `packages/kube-studio`, `packages/devops`, `packages/robos-graph`, `packages/dev-central`, Git Store (`.robos/terraform/`) |
 | **Search Studio — OpenSearch, Elasticsearch, Solr, Vector & Log Analytics** | [raw note](inbox/search-engine-and-log-analytics-studio.txt) | [feature spec](specs/search-engine-and-log-analytics-studio.md) | Draft | `packages/search-studio`, `packages/robos-graph`, `packages/data-sources`, Desktop Shell, Git Store (`.robos/searches.yaml`) |
+| **RobOS KGraph Crawler** | [raw note](inbox/robos-kgraph-crawler.txt) | [feature spec](specs/robos-kgraph-crawler.md) | Draft | `packages/kgraph-crawler`, `packages/robos-graph`, `packages/data-sources`, `packages/dev-central`, `.robos/` Git Store, Apache Tika 4.0 Pipes & `tika-grpc` |
+
 
 ## Prompt-Driven Open Source: Community Runner Workflows
 
