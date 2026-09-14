@@ -1,6 +1,7 @@
 'use strict';
 (() => {
   const el = id => document.getElementById(id);
+  const presentation = window.WorkspacePresentation;
   let proposal = null;
   const input = () => ({ prompt: el('workspace-prompt').value, query: el('workspace-scope').value });
   function discard() { proposal = null; el('workspace-apply').disabled = true; el('workspace-diff').textContent = ''; }
@@ -11,7 +12,7 @@
     const oldCopilot = document.querySelector('.copilot-bar');
     if (oldCopilot) oldCopilot.hidden = true;
     el('workspace-coverage-details').hidden = !info.sourceSummary;
-    el('workspace-coverage').textContent = info.sourceSummary ? JSON.stringify(info.sourceSummary, null, 2) : '';
+    el('workspace-coverage').replaceChildren(...(info.sourceSummary ? [presentation.value(info.sourceSummary), presentation.raw(info.sourceSummary)] : []));
     el('workspace-summary').textContent = `${info.title} · ${info.nodeCount} nodes`;
     el('workspace-revision').textContent = `Revision ${info.revision.slice(0, 12)} · ${info.root}`;
     el('workspace-packages').replaceChildren(...Object.entries(info.packages).map(([name, count]) => {
@@ -21,11 +22,11 @@
       return span;
     }));
   }
-  function preview(p) {
+  function preview(p, questions = []) {
     proposal = p;
     const { delta, conflicts, stale, validation } = p;
     el('workspace-status').textContent = `${delta.added.length} added · ${delta.changed.length} changed · ${delta.removed.length} removed · ${conflicts.length} conflicts · ${validation.errors.length} validation errors`;
-    el('workspace-diff').textContent = JSON.stringify({ changes: delta, conflicts, stale, validation, sourceEvidence: p.candidate['robos:nodes'].filter(n => delta.added.some(a => a['@id'] === n['@id']) || delta.changed.some(c => c.id === n['@id'])).map(n => ({ id: n['@id'], evidence: n['robos:evidence'] })) }, null, 2);
+    presentation.preview(el('workspace-diff'), p, questions);
     el('workspace-apply').disabled = !validation.conforms || !!conflicts.length;
   }
   function action(id, fn) {
@@ -45,15 +46,14 @@
   });
   action('workspace-context', async () => {
     const brief = await window.sdlcGraph.workspaceContext(input());
-    el('workspace-context-output').textContent = JSON.stringify(brief, null, 2);
+    presentation.brief(el('workspace-context-output'), brief);
     el('workspace-context-details').open = true;
-    el('workspace-status').textContent = `${brief.nodes.length} of ${brief.totalMatches} matching nodes included. Use this brief with your coding agent and paste its proposed edits below.`;
+    el('workspace-status').textContent = `${brief.nodes.length} of ${brief.totalMatches} matching records included. Review the evidence, then ask the configured agent or import its edits under Advanced.`;
   });
   action('workspace-agent', async () => {
     discard(); el('workspace-status').textContent = 'Preparing a proposal with the configured agent…';
     const result = await window.sdlcGraph.askWorkspaceAgent(input());
-    preview(result.proposal);
-    if (result.questions.length) el('workspace-diff').textContent += '\nOpen questions:\n' + JSON.stringify(result.questions, null, 2);
+    preview(result.proposal, result.questions);
   });
   action('workspace-propose', async () => { discard(); const file = el('workspace-file').files[0]; const edits = JSON.parse(file ? await file.text() : el('workspace-edits').value); preview(await window.sdlcGraph.proposeWorkspace({ ...edits, prompt: el('workspace-prompt').value || edits.prompt || '' })); });
   action('workspace-apply', async () => {

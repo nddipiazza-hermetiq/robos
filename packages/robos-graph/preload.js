@@ -2,6 +2,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('sdlcGraph', {
+  listPlans: () => ipcRenderer.invoke('project-plan-list'),
+  viewPlan: input => ipcRenderer.invoke('project-plan-view', input),
   graphInfo: () => ipcRenderer.invoke('graph-info'),
   onNavigate: callback => {
     const listener = (_, direction) => callback(direction);

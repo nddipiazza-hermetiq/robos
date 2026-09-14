@@ -2,6 +2,10 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('robos', {
+  listPlans: () => ipcRenderer.invoke('project-plan-list'),
+  viewPlan: input => ipcRenderer.invoke('project-plan-view', input),
+  proposePlan: input => ipcRenderer.invoke('project-plan-propose', input),
+  applyPlan: id => ipcRenderer.invoke('project-plan-apply', id),
   readSettings:    ()        => ipcRenderer.invoke('read-settings'),
   getServerInfo:   ()        => ipcRenderer.invoke('get-server-info'),
   generateTasks:   (p)       => ipcRenderer.invoke('generate-tasks', p),
