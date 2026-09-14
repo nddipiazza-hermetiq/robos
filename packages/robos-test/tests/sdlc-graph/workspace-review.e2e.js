@@ -44,7 +44,8 @@ test('Explorer: prepare evidence brief, preview/refine/discard, save and reopen 
     await page.locator('#workspace-context-output').filter({ hasText: 'README.md' }).waitFor();
     await narrate('Prepare a bounded agent brief containing the selected graph, schema, and source evidence.');
     await page.screenshot({ path: path.join(proof, '01-agent-brief.png') });
-    await page.locator('#workspace-context-details summary').click();
+    await page.locator('#workspace-context-details > summary').click();
+    await page.locator('#workspace-manual > summary').click();
     const edit = { edits: [{ op: 'update', id, set: { 'dcterms:title': 'Engineering Service Catalog' } }] };
     await page.locator('#workspace-edits').fill(JSON.stringify(edit));
     await page.locator('#workspace-propose').click();

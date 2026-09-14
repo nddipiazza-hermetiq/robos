@@ -17,6 +17,7 @@ TARGET="all"
 GLOBAL=false
 DRY_RUN=false
 SYNC_ONLY=false
+SKILL_FILTER=""
 
 usage() {
   cat <<EOF
@@ -30,6 +31,7 @@ Options:
                          all (default), claude, codex, antigravity, copilot, gemini
   -g, --global           Install globally to user's home directory (~/.claude, ~/.agents, etc.)
   -s, --sync             Synchronize skills and command bridges to local project folders
+      --skill NAME      Sync only one named skill and command bridge
   -n, --dry-run          Show what actions would be performed without modifying files
   -h, --help             Display this help message
 
@@ -57,6 +59,12 @@ while [[ $# -gt 0 ]]; do
       SYNC_ONLY=true
       shift
       ;;
+    --skill)
+      SKILL_FILTER="${2:?Specify a skill name}"
+      [[ "$SKILL_FILTER" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] || { echo "Invalid skill name" >&2; exit 1; }
+      [[ -f "$SKILLS_DIR/$SKILL_FILTER/SKILL.md" ]] || { echo "Unknown skill" >&2; exit 1; }
+      shift 2
+      ;;
     -n|--dry-run)
       DRY_RUN=true
       shift
@@ -82,6 +90,11 @@ success() {
 copy_or_dry_run() {
   local src="$1"
   local dest="$2"
+  if [[ -n "$SKILL_FILTER" ]]; then
+    local name
+    name="$(basename "$src")"
+    [[ "$name" == "$SKILL_FILTER" || "$name" == "$SKILL_FILTER.md" ]] || return 0
+  fi
 
   if [ "$DRY_RUN" = true ]; then
     echo "  [DRY-RUN] cp -r \"$src\" \"$dest\""
@@ -225,6 +238,10 @@ install_global_level() {
 }
 
 # Execute installation
+if [[ "$GLOBAL" = true && -n "$SKILL_FILTER" ]]; then
+  echo "--skill is supported only for project-level sync" >&2
+  exit 1
+fi
 if [ "$GLOBAL" = true ]; then
   install_global_level
 else
@@ -232,4 +249,3 @@ else
 fi
 
 log "Done! RobOS Plugin Marketplace and 22 skills are ready."
-

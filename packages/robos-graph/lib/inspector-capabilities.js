@@ -76,7 +76,8 @@
     }
     const relations = relationships.get(node['@id']) || [];
     const groups = propertyGroups.groups(node, nodes);
-    return { tabs: ['visual',...groups.map(group => `group-${group.id}`),...(relations.length?['topology']:[]),...(relations.some(e=>e.kind==='dependency')?['impact']:[]),'query',...(documents.length?['documentation']:[]),...(evidence.length?['evidence']:[]),'rdf'], documents, evidence, relations, groups };
+    const hasPlan = !!node['robos:planJson'] || list(node['robos:inProject']).some(ref=>byId.get(typeof ref==='string'?ref:ref?.['@id'])?.['robos:planJson']);
+    return { tabs: ['visual',...(hasPlan?['plan']:[]),...groups.map(group => `group-${group.id}`),...(relations.length?['topology']:[]),...(relations.some(e=>e.kind==='dependency')?['impact']:[]),'query',...(documents.length?['documentation']:[]),...(evidence.length?['evidence']:[]),'rdf'], documents, evidence, relations, groups };
   }
   function selectTab(requested,node,nodes,relationships) {
     const tab=({overview:'visual',jsonld:'rdf'})[requested]||requested;

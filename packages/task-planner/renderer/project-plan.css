@@ -1,0 +1,19 @@
+.project-plan-body { max-width: 1080px; margin: 0 auto; color: #e6edf3; font: 14px/1.6 system-ui,sans-serif; }
+.plan-heading { margin: 20px 0; padding: 8px 0 20px; border-bottom: 1px solid #303d4c; }
+.plan-heading h1 { font-size: 27px; line-height: 1.25; margin: 8px 0 14px; }
+.plan-eyebrow { color: #74d5e2; font-size: 12px; letter-spacing: .04em; }
+.plan-card { padding: 18px 22px; margin: 14px 0; background: #161e29; border: 1px solid #334155; border-radius: 8px; }
+.plan-card h2 { font-size: 18px; margin: 0 0 8px; }
+.plan-card h3 { margin: 6px 0 12px; font-size: 16px; }
+.plan-card a { color: #77d3ee; overflow-wrap: anywhere; }
+.plan-child { margin-left: 22px; }
+.plan-selected { border-color: #00bcd4; }
+.plan-prose { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
+.plan-notice { color: #f0ce82; padding: 8px; white-space: pre-wrap; }
+.plan-muted { color: #a9b8c9; }
+.plan-card summary { cursor: pointer; padding: 8px 0; color: #c1d5e7; }
+.plan-toolbar { display: flex; gap: 12px; margin: 12px 0; }
+.plan-toolbar select { width: 100%; padding: 12px; background: #172335; color: #eef6ff; border: 1px solid #54708c; border-radius: 5px; }
+#workspace-plan-panel { position: fixed; inset: 65px 12px 12px; overflow: auto; padding: 24px; background: #0d1117; z-index: 50; }
+#workspace-plan-input { width: 100%; min-height: 130px; background: #172335; color: #eef6ff; padding: 12px; }
+@media(max-width:700px) { .plan-child { margin-left: 8px; } .plan-card { padding: 12px; } }

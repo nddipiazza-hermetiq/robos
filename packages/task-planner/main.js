@@ -13,6 +13,10 @@ app.commandLine.appendSwitch('disable-dev-shm-usage');
 
 const SETTINGS_FILE   = path.join(os.homedir(), '.config', 'robos', 'settings.json');
 const PROJECTS_DIR    = path.join(os.homedir(), '.config', 'robos', 'task-planner', 'projects');
+require('./lib/project-plan').registerPlanIPC(ipcMain, () => {
+  if (!process.env.ROBOS_GRAPH_ROOT) throw new Error('Set ROBOS_GRAPH_ROOT to the project graph workspace');
+  return process.env.ROBOS_GRAPH_ROOT;
+});
 
 const { TemplateManager } = require('./lib/template-manager');
 const templateManager = new TemplateManager();
@@ -85,6 +89,15 @@ function readSettings() {
 }
 
 function getActiveServer(settings) {
+  if (process.env.ROBOS_GRAPH_ROOT) {
+    const {GraphWorkspace}=require('../robos-graph/lib/graph-workspace');
+    const servers=new GraphWorkspace(process.env.ROBOS_GRAPH_ROOT).read()['robos:nodes'].filter(n=>[].concat(n['@type']||[]).includes('robos:TaskServer')&&n['robos:serverType']==='github');
+    if(servers.length!==1)return null;
+    const node=servers[0],repo=node['robos:projectKey'];
+    if(!/^[\w.-]+\/[\w.-]+$/.test(repo||''))return null;
+    const [gh_org,gh_repo]=repo.split('/');
+    return {id:node['@id'],name:node['dcterms:title'],type:'github',gh_org,gh_repo,issue_types:[]};
+  }
   const s = settings || readSettings();
   const servers = s.task_servers || [];
   if (!servers.length) {

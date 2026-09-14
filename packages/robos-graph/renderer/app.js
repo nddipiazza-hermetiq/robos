@@ -89,7 +89,10 @@ async function load() {
   renderBranchSelector();
   renderNodeList();
   if (nodes.length > 0) {
-    if (visit) await restoreGraphVisit(visit);
+    const requestedPlanTask=new URLSearchParams(window.location.search).get('planTask');
+    const requestedNode=requestedPlanTask&&nodes.find(node=>node['robos:url']===requestedPlanTask);
+    if(requestedNode){currentTab='plan';await selectNode(requestedNode['@id']);}
+    else if (visit) await restoreGraphVisit(visit);
     else { currentTab = 'visual'; await selectNode(nodes[0]['@id']); }
   } else { selectedNodeId = null; queryPathFrom = null; queryPathTo = null; queryPathResult = null; await renderInspector(); }
 }
@@ -318,6 +321,7 @@ async function renderInspector() {
   if (!node) { container.append(inspectorElement('p', 'No node selected.')); return; }
   if (inspectorSelectedContext !== node['@id']) { queryPathFrom = node['@id']; queryPathTo = null; queryPathResult = null; structuredQueryResults = null; inspectorSelectedContext = node['@id']; }
   const capability = inspectorCapabilities.capabilities(node, nodes, inspectorRelationIndex);
+  if (currentTab === 'plan') { await window.RobosProjectPlan.mount(container, { list: window.sdlcGraph.listPlans, view: window.sdlcGraph.viewPlan }, node['robos:planJson'] ? node['@id'] : node['robos:url']); return; }
   const group = capability.groups.find(group => `group-${group.id}` === currentTab);
   if (group) { window.RobosSchemaGroupView.render(container, group, nodes); return; }
   if (currentTab === 'rdf') { container.append(inspectorElement('pre', JSON.stringify(node, null, 2), 'json-pre')); return; }
@@ -1515,7 +1519,7 @@ function updateTabUI() {
     button.classList.toggle('active', currentTab === id);
   }
   if (focused?.isConnected) focused.focus({ preventScroll: true });
-  for (const tab of ['visual','topology','impact','query','documentation','evidence','rdf']) {
+  for (const tab of ['visual','plan','topology','impact','query','documentation','evidence','rdf']) {
     const el = document.getElementById(`tab-btn-${tab}`);
     if (el) { el.hidden = !supported.includes(tab); el.classList.toggle('active', currentTab === tab); }
   }
@@ -1713,7 +1717,7 @@ if (btnSubmitIngest) btnSubmitIngest.addEventListener('click', () => window.subm
 const btnRunGitSync = document.getElementById('btn-run-ingest-gitprojects');
 if (btnRunGitSync) btnRunGitSync.addEventListener('click', () => window.runIngestGitProjects());
 
-for (const tab of ['documentation', 'evidence', 'rdf']) document.getElementById(`tab-btn-${tab}`).addEventListener('click', () => window.switchTab(tab));
+for (const tab of ['plan', 'documentation', 'evidence', 'rdf']) document.getElementById(`tab-btn-${tab}`).addEventListener('click', () => window.switchTab(tab));
 window.switchTab = function(tabName) {
   const node = nodes.find(n=>n['@id'] === selectedNodeId) || nodes[0] || {};
   currentTab = inspectorCapabilities.selectTab(tabName, node, nodes, inspectorRelationIndex);
@@ -2747,4 +2751,3 @@ const btnAddRepo = document.getElementById('btn-add-repo');
 if (btnAddRepo) btnAddRepo.addEventListener('click', () => window.addNewRepo());
 
 load();
-

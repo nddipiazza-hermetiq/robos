@@ -145,6 +145,9 @@ plugins/
 
 | Skill Name | Command | Description |
 |------------|---------|-------------|
+| `view-task-plan` | `/view-task-plan` | Read/list plans by task or plan identity |
+| `update-project-plan` | `/update-project-plan` | Export, edit, refresh or restore through reviewed proposals |
+| `remove-project-plan` | `/remove-project-plan` | Remove saved plan only; preserve project and issues |
 | **`add-ai-text-area-to-app`** | `/add-ai-text-area-to-app` | Embed `<robos-ai-textarea>` with streaming and `@mention` typeahead |
 | **`add-install-step`** | `/add-install-step` | Add a step to cloud-init provisioning and ASCII splash screen |
 | **`app-snapshot`** | `/app-snapshot` | Capture DOM text/JSON/screenshot snapshots from running apps |
@@ -193,3 +196,9 @@ This automatically scaffolds `plugins/robos/skills/<skill-name>/SKILL.md`, creat
 ```bash
 /manage-robos-skill remove <skill-name>
 ```
+# Linked project planning
+
+`plan-before-implement` creates standard project plans with GitHub feature/task
+links and reviewed graph persistence. See
+[`PROJECT-PLANS.md`](../packages/task-planner/PROJECT-PLANS.md) for the input format,
+Task Planner workflow, KGraph Project Plan tab, and read-only task lookup.

@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RobOS Task Planner</title>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="project-plan.css"/>
+  <script src="project-plan-view.js"></script>
+  <script src="workspace-plans.js" defer></script>
 </head>
 <body>
   <div id="app">
@@ -16,11 +19,23 @@
         <h1>Task Planner</h1>
       </div>
       <div class="header-right">
+        <button id="btn-workspace-plans" class="btn btn-accent">KGraph Project Plans</button>
         <div id="server-badge" class="server-badge">Loading…</div>
       </div>
     </header>
 
     <div id="body-layout">
+      <section id="workspace-plan-panel" hidden aria-label="KGraph Project Plans">
+        <button id="workspace-plan-close" class="btn">Close plans</button>
+        <details><summary>Create or update a linked project plan</summary>
+          <p>Paste a version 1 plan with existing GitHub issue URLs. Preview reads the issues and validates the graph; Save applies the reviewed proposal.</p>
+          <textarea id="workspace-plan-input" aria-label="Project plan JSON"></textarea>
+          <button id="workspace-plan-preview" class="btn">Preview plan</button>
+          <button id="workspace-plan-save" class="btn" disabled>Save reviewed plan</button>
+          <pre id="workspace-plan-review" class="plan-prose" role="status"></pre>
+        </details>
+        <div id="workspace-plan-view"></div>
+      </section>
       <!-- Projects Sidebar -->
       <aside id="projects-sidebar">
         <div class="sidebar-header">

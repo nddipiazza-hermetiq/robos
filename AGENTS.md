@@ -181,6 +181,8 @@ Port range: 19100–19121 (e.g., app-launcher=19100, dev-central=19101). See `PO
 RobOS includes a cross-agent plugin marketplace and standard skills under `plugins/robos/skills/` (and `.agents/skills/`).
 
 ### Available Skills
+- `view-task-plan`, `update-project-plan`, `remove-project-plan` — Read, edit/refresh/restore, or remove saved plans without deleting tracker issues.
+- `plan-before-implement` — Create a reviewed GitHub-linked project plan in Task Planner and view it by task from KGraph Explorer.
 - `add-ai-text-area-to-app` — Add `<robos-ai-textarea>` widget to a RobOS app
 - `add-install-step` — Add cloud-init provisioning steps
 - `app-snapshot` — Capture DOM snapshot from a running app
