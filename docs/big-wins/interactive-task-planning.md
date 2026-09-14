@@ -2,7 +2,7 @@
 title: Interactive Multi-Domain Planning Studio
 layout: default
 parent: RobOS Main Wins
-nav_order: 2
+nav_order: 19
 permalink: /big-wins/interactive-task-planning.html
 ---
 

@@ -28,6 +28,18 @@ const UHP_SPEC_VERSION = '2026-08-11';
 const DEFAULT_UHP_URL = 'http://127.0.0.1:3000';
 const DEFAULT_STORAGE_DIR = path.join(os.homedir(), '.config', 'robos', 'harnessrouter');
 
+let promptSecurity = null;
+try {
+  const libPaths = [
+    process.env.ROBOS_LIB_PATH && path.join(process.env.ROBOS_LIB_PATH, 'prompt-security'),
+    path.resolve(__dirname, '..', 'robos-lib', 'prompt-security'),
+    '/usr/local/share/robos/robos-lib/prompt-security',
+  ].filter(Boolean);
+  for (const p of libPaths) {
+    try { promptSecurity = require(p); break; } catch {}
+  }
+} catch {}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function safeJsonParse(str, fallback = null) {
@@ -496,10 +508,45 @@ class EmbeddedHarnessRouter extends EventEmitter {
       sessions.push(session);
     }
 
+    let effectiveInput = input;
+    if (promptSecurity && options.enableSecurity !== false) {
+      const guard = options.securityGuard || new promptSecurity.PromptSecurityGuard(options.securityOptions);
+      const secResult = guard.scan(input);
+      if (!secResult.allowed) {
+        const errObj = { code: 'prompt_security_violation', message: secResult.summary, findings: secResult.findings };
+        const turn = {
+          id: responseId,
+          object: 'turn',
+          input,
+          model,
+          harness_id: harnessId,
+          status: 'failed',
+          error: errObj,
+          created_at: new Date().toISOString(),
+          output: '',
+        };
+        session.turns.push(turn);
+        session.updated_at = new Date().toISOString();
+        this._writeSessions(sessions);
+        if (onEvent) {
+          onEvent('task.failed', { id: responseId, session_id: effectiveSessionId, error: errObj });
+        }
+        return {
+          ok: false,
+          status: 400,
+          error: errObj,
+          data: { id: responseId, object: 'response', status: 'failed', error: errObj },
+        };
+      }
+      if (secResult.mode === 'redact' && secResult.findings.length > 0) {
+        effectiveInput = secResult.redactedText;
+      }
+    }
+
     const turn = {
       id: responseId,
       object: 'turn',
-      input,
+      input: effectiveInput,
       model,
       harness_id: harnessId,
       status: 'running',
@@ -521,13 +568,13 @@ class EmbeddedHarnessRouter extends EventEmitter {
 
     if (harnessId && harnessId.includes('claude') && isCommandAvailable('claude')) {
       cmd = 'claude';
-      args = ['-p', input, '--output-format', 'text'];
+      args = ['-p', effectiveInput, '--output-format', 'text'];
     } else if (harnessId && harnessId.includes('codex') && isCommandAvailable('codex')) {
       cmd = 'codex';
-      args = ['exec', input];
+      args = ['exec', effectiveInput];
     } else if (harnessId && harnessId.includes('copilot') && (isCommandAvailable('copilot') || isCommandAvailable('gh'))) {
       cmd = isCommandAvailable('copilot') ? 'copilot' : 'gh';
-      args = cmd === 'gh' ? ['copilot', 'suggest', '-t', 'shell', input] : ['suggest', input];
+      args = cmd === 'gh' ? ['copilot', 'suggest', '-t', 'shell', effectiveInput] : ['suggest', effectiveInput];
     }
 
     // Execute or fallback to simulation if specific CLI is not installed

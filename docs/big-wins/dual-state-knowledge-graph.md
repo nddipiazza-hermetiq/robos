@@ -2,7 +2,7 @@
 title: Dual-State SDLC Knowledge Graph
 layout: default
 parent: RobOS Main Wins
-nav_order: 10
+nav_order: 3
 permalink: /big-wins/dual-state-knowledge-graph.html
 ---
 

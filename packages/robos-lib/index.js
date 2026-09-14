@@ -114,6 +114,7 @@ function displayName(name) {
 
 const onboardingState = require('./onboarding-state');
 const { GitOpsSDLCParser } = require('./gitops-parser');
+const promptSecurity = require('./prompt-security');
 
 module.exports = {
   CATEGORIES,
@@ -124,6 +125,15 @@ module.exports = {
   displayName,
   GitOpsSDLCParser,
   ...onboardingState,
+  promptSecurity,
+  PromptSecurityGuard: promptSecurity.PromptSecurityGuard,
+  scanPrompt: promptSecurity.scanPrompt,
+  redactPrompt: promptSecurity.redactPrompt,
+  calculateShannonEntropy: promptSecurity.calculateShannonEntropy,
+  luhnCheck: promptSecurity.luhnCheck,
+  OSS_RULE_CATALOG: promptSecurity.OSS_RULE_CATALOG,
+  PROMPT_SECURITY_MODES: promptSecurity.PROMPT_SECURITY_MODES,
 };
+
 
 

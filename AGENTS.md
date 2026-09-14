@@ -19,6 +19,7 @@ The core execution and verification fabric:
 - **Dual-State Knowledge Graph**: Live blast-radius diffing between `main` and feature branches before code is written.
 - **Ephemeral In-Memory Sandboxes (`tmpfs`)**: Zero-pollution Linux accounts and virtual X11 displays preventing machine clutter and credential leaks.
 - **Unified Agent Routing Engine (HarnessRouter / UHP `2026-08-11`)**: Standardized execution boundary and routing gateway conforming to the Unified Harness Protocol (UHP). Routes tasks across OpenAI Codex, Anthropic Claude Code, Google Gemini CLI / Antigravity, GitHub Copilot, Hermes, and Oh My Pi. 100% Free & Open Source (Apache-2.0) with zero SaaS subscriptions or proprietary cloud dependencies; dual-mode runtime supports self-hosted Docker container (`:3000`) and RobOS embedded in-process UHP runner.
+- **Zero-Data-Leak Prompt Security Guard (Gitleaks, TruffleHog, Presidio, OWASP LLM01)**: Built-in pre-flight prompt security engine protecting agents against sensitive data leakage, credentials exposure, PII violations, and prompt injections. Intercepts all prompts at UI `<robos-ai-textarea>`, `AgentSession`, and `EmbeddedHarnessRouter`. Supports 5 policy modes (`redact`, `block`, `warn`, `audit-only`, `off`), Shannon entropy checks, Luhn checksums, and audit logging to `~/.config/robos/prompt-security-audit.json`.
 
 ### 2. Optional Dedicated Appliance OS & Virtual Machine
 
@@ -124,7 +125,7 @@ const { registerSnapshotIPC, startDebugServer } = require('/usr/local/share/robo
 ```
 Always wrap these requires in try/catch for dev-harness compatibility (libs may not be installed locally).
 
-- **robos-lib** — `.desktop` file parsing (`parseDesktopFile`, `loadRobOSApps`, `groupByCategory`), app categories, DOM snapshot debug server
+- **robos-lib** — `.desktop` file parsing (`parseDesktopFile`, `loadRobOSApps`, `groupByCategory`), app categories, DOM snapshot debug server, and **Prompt Security Guard** (`packages/robos-lib/prompt-security.js`: zero-dependency OSS-standard secret detection [AWS, GitHub, tokens, private keys], Presidio PII recognition [Luhn-validated cards, SSN], OWASP LLM01 injection defense, Shannon entropy, and auto-redaction)
 - **robos-icons** — Icon registry: `BUILTIN_APPS` array, `getIcon()`, `getAllIcons()`. Format: `{ appId, label, category, iconSvg }`
 
 ## Development & Testing
@@ -272,6 +273,13 @@ RobOS provides interactive onboarding wizards across 7 categories (Source Contro
 - **Zero Plaintext Credentials in KGraph**: Sensitive API tokens, private keys, and passwords are never written to the Knowledge Graph.
 - **GPG Password Store Integration**: Secrets are encrypted and saved directly into the local UNIX password store (`pass`) at `~/.password-store/devops/<category>/<provider>/<account-slug>/<key>.gpg`.
 - **First-Class Reference Nodes**: The KGraph stores first-class `robos:PassCredential` reference nodes declaring the `robos:passPath`, linked to `robos:DevOpsIntegration` nodes via `robos:hasCredential`.
+
+**Zero-Data-Leak Prompt Security Guard & LLM Defense (`robos:PromptSecurityGuard`)**:
+RobOS incorporates an open-source-standard prompt security guard (`urn:robos:security:prompt-security-guard`) directly within the `core-platform` package:
+- **Rule Catalogs**: Integrates Gitleaks & TruffleHog secret detection patterns (AWS, GitHub PATs, private keys, database URIs with password masking, JWTs), Microsoft Presidio PII recognizers (Luhn-validated credit cards, US SSNs, phone numbers, personal emails, private IPs), and OWASP LLM01 prompt injection & system prompt override defenses.
+- **Interception Points**: Intercepts input in real time across the `<robos-ai-textarea>` web component, `AgentSession.start()`, `EmbeddedHarnessRouter.runTask()`, `ai-prompt`, and `agent-chat`.
+- **Enforcement Modes**: Configurable via `robos-preferences` across `redact` (default, in-place masking), `block` (raises `PromptSecurityError`), `warn`, `audit-only`, and `off`.
+- **Audit Logging & Entropy**: Logs all scan and redaction events to `~/.config/robos/prompt-security-audit.json`, calculating mathematical Shannon entropy to detect high-entropy credentials without vendor prefixes.
 
 **Multi-App Archetypes**:
 - **Microservices & Web APIs** (`robos:Microservice`): Backend services implementing OpenAPI 3.1 YAML, Protobuf gRPC, or GraphQL contracts.

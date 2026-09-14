@@ -14,8 +14,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 OUTPUT_DIR="$SCRIPT_DIR/output"
 VERSION=$(cat "$REPO_ROOT/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "dev")
 
-UBUNTU_ISO_URL="https://releases.ubuntu.com/26.04/ubuntu-26.04-live-server-amd64.iso"
-UBUNTU_ISO="$OUTPUT_DIR/ubuntu-26.04-server-amd64.iso"
+UBUNTU_ISO_URL="https://releases.ubuntu.com/22.04.5/ubuntu-22.04.5-live-server-amd64.iso"
+UBUNTU_ISO="$OUTPUT_DIR/ubuntu-22.04.5-server-amd64.iso"
 ROBOS_ISO="$OUTPUT_DIR/robos.iso"
 
 for cmd in xorriso wget; do

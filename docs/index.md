@@ -40,7 +40,8 @@ Instead of forcing developers to manually decipher thousands of lines of unconte
 
 [⭐ Star on GitHub](https://github.com/nddipiazza/robos){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 target="_blank" rel="noopener" }
 [💬 Join Discord](https://discord.gg/6PjxzkHujE){: .btn .btn-purple .fs-5 .mb-4 .mb-md-0 .mr-2 target="_blank" rel="noopener" }
-[🚀 Get Started]({{ site.baseurl }}{% link getting-started.md %}){: .btn .btn-blue .fs-5 .mb-4 .mb-md-0 .mr-2 }
+[⚡ 21 Big Wins Demo (Plain English)]({{ '/demo.html' | relative_url }}){: .btn .btn-blue .fs-5 .mb-4 .mb-md-0 .mr-2 style="background: linear-gradient(135deg, #00bcd4 0%, #8b5cf6 100%) !important; border: none !important; color: #ffffff !important; font-weight: 700 !important; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4) !important;" }
+[🚀 Get Started]({{ site.baseurl }}{% link getting-started.md %}){: .btn .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [🎭 PR Review Theater]({{ site.baseurl }}{% link pr-review-theater.md %}){: .btn .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [🧬 SDLC Knowledge Graph]({{ site.baseurl }}{% link knowledge-graph.md %}){: .btn .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [📱 Browse 30+ Apps]({{ site.baseurl }}{% link apps.md %}){: .btn .fs-5 .mb-4 .mb-md-0 .mr-2 }
@@ -51,6 +52,7 @@ Instead of forcing developers to manually decipher thousands of lines of unconte
 [🌱 About RobOS]({{ site.baseurl }}{% link about.md %}){: .btn .fs-5 .mb-4 .mb-md-0 }
 
 <div style="margin: 1.5rem 0 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+  <a href="{{ '/demo.html' | relative_url }}" class="btn fs-3" style="border-color: #00e5ff; color: #00e5ff; font-weight: 700; box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);">⚡ 21 Big Wins Demo</a>
   <a href="{{ site.baseurl }}{% link pr-review-theater.md %}" class="btn fs-3" style="border-color: #8b5cf6; color: #c4b5fd;">🎭 PR Review Theater</a>
   <a href="{{ site.baseurl }}{% link knowledge-graph.md %}" class="btn fs-3" style="border-color: #00bcd4; color: #38bdf8;">🌐 SDLC Knowledge Graph</a>
   <a href="{{ site.baseurl }}{% link apps.md %}" class="btn fs-3" style="border-color: #06b6d4; color: #67e8f9;">📱 30+ Native App Suite</a>
@@ -599,7 +601,7 @@ RobOS was created and refined through equal agentic collaboration among all four
 
 ---
 
-## Installation & Getting Started
+## Installation / Getting Started
 
 Choose the path that fits your development workflow:
 
@@ -645,7 +647,7 @@ infra/desktop/run.sh
 
 ## Next Steps
 
-- **[Get Started Guide]({{ site.baseurl }}{% link getting-started.md %})**: Set up your development environment and launch your first RobOS app.
+- **[Installation / Getting Started Guide]({{ site.baseurl }}{% link getting-started.md %})**: Set up your development environment and launch your first RobOS app.
 - **[App Development Flow]({{ site.baseurl }}{% link app-development-flow.md %})**: Learn the complete end-to-end development cycle.
 - **[System Architecture]({{ site.baseurl }}{% link architecture.md %})**: Dive deep into the 8 architectural pillars and the Dual-State Comparison Engine.
 - **[Browse All 30+ Apps]({{ site.baseurl }}{% link apps.md %})**: Explore the full catalog of RobOS developer tools.

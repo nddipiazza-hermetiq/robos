@@ -129,6 +129,37 @@
       ]
     },
     {
+      "@id": "urn:robos:security:prompt-security-guard",
+      "@type": [
+        "robos:SecurityGuard",
+        "robos:PromptSecurityGuard",
+        "oslc:Resource",
+        "schema:SoftwareApplication"
+      ],
+      "dcterms:title": "RobOS Prompt Security Guard & OSS Guardrails Engine",
+      "dcterms:description": "Open-source prompt security guardrail engine preventing developers from intentionally or unintentionally sending secrets, credentials, PII, and prompt injections to AI agents. Built on Gitleaks, TruffleHog, Microsoft Presidio, and OWASP LLM01 standards.",
+      "robos:package": "core-platform",
+      "robos:namespace": "robos.security",
+      "robos:refersFrom": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "robos:schemaOrgType": "https://schema.org/SoftwareApplication",
+      "robos:domainStandard": "https://github.com/gitleaks/gitleaks",
+      "robos:supportedStandards": [
+        "Gitleaks v8+",
+        "TruffleHog",
+        "Microsoft Presidio",
+        "OWASP LLM01: Prompt Injection",
+        "OWASP LLM02: Sensitive Information Disclosure",
+        "NIST SP 800-53"
+      ],
+      "robos:supportedModes": [
+        "redact",
+        "block",
+        "warn",
+        "audit-only",
+        "off"
+      ]
+    },
+    {
       "@id": "urn:robos:build-system:acme-monorepo-bazel",
       "@type": [
         "robos:BuildSystem",

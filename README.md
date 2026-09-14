@@ -44,28 +44,29 @@ Today's AI coding assistants (Claude Code, GitHub Copilot, Cursor, OpenAI Codex,
 1. **"Trust Me, It Works" (Review Fatigue)**: Agents claim `"Task complete!"` without verifying their work. Developers spend more time reviewing hallucinated diffs, broken imports, and failed edge cases than they would have spent writing the code from scratch.
 2. **Invisible Blast Radiuses**: An agent working in a single file or repository has no visibility into the broader system. Renaming an entity breaks a downstream analytics pipeline; tweaking an API response violates a frontend consumer contract.
 3. **Machine Pollution & Host Mutation**: Autonomous agents executing unchecked shell commands in your home directory leave behind orphaned node modules, zombie Docker containers, conflicting processes, and credential leak risks.
+4. **Unintentional Credential & Data Leakage**: Developers pasting terminal logs, stack traces, or configs into AI prompts accidentally transmit AWS keys, GitHub PATs, database credentials, or customer PII into third-party LLM contexts. Agents are also exposed to prompt injection and credential exfiltration payloads.
 
 **RobOS fixes this by placing autonomous agents inside a verifiable governance harness.**
 
 ---
 
-## 🎯 The 3 Killer Wedges
+## 🎯 The Killer Wedges
 
-RobOS turns developers into **Lead System Architects** by wrapping autonomous agents in three non-negotiable verification gates:
+RobOS turns developers into **Lead System Architects** by wrapping autonomous agents in non-negotiable verification gates:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          ROBOS GOVERNANCE HARNESS                           │
-├───────────────────────┬───────────────────────────┬─────────────────────────┤
-│  1. VIDEO PROOF-OF-   │  2. DUAL-STATE SEMANTIC   │  3. EPHEMERAL IN-MEMORY │
-│     WORK ENGINE       │     BLAST-RADIUS DIFFS    │     SANDBOXES (tmpfs)   │
-├───────────────────────┼───────────────────────────┼─────────────────────────┤
-│ Headless Xvfb virtual │ Live graph diffing of     │ Zero host pollution.    │
-│ displays execute user │ World 1 (main) vs World 2 │ Agents run in isolated  │
-│ flows and record 1080p│ (feature branch). Flags   │ in-memory Linux profiles│
-│ narrated walkthroughs │ broken API contracts and  │ with auto-teardown and  │
-│ with Piper TTS audio. │ Pact tests before code.   │ zero residual files.    │
-└───────────────────────┴───────────────────────────┴─────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                ROBOS GOVERNANCE HARNESS                                │
+├──────────────────────┬──────────────────────────┬──────────────────────────┬───────────┤
+│ 1. VIDEO PROOF-OF-   │ 2. DUAL-STATE SEMANTIC   │ 3. EPHEMERAL IN-MEMORY   │ 4. PROMPT │
+│    WORK ENGINE       │    BLAST-RADIUS DIFFS    │    SANDBOXES (tmpfs)     │    SEC    │
+├──────────────────────┼──────────────────────────┼──────────────────────────┼───────────┤
+│ Headless Xvfb virtual│ Live graph diffing of    │ Zero host pollution.     │ Zero leak │
+│ displays execute user│ World 1 (main) vs World 2│ Agents run in isolated   │ OSS rules │
+│ flows and record 1080p (feature branch). Flags  │ in-memory Linux profiles │ (Gitleaks,│
+│ narrated walkthroughs│ broken API contracts and │ with auto-teardown and   │ Presidio, │
+│ with Piper TTS audio.│ Pact tests before code.  │ zero residual files.     │ OWASP).   │
+└──────────────────────┴──────────────────────────┴──────────────────────────┴───────────┘
 ```
 
 ### 1. Automated 1080p Video Proof-of-Work
@@ -76,6 +77,9 @@ Before generating code, RobOS compares your production architecture (**World 1**
 
 ### 3. Ephemeral In-Memory Sandboxes (`tmpfs`)
 AI agents never execute raw commands directly in your daily workstation environment. RobOS isolates agent swarms inside ephemeral Linux user profiles mounted directly on in-memory `tmpfs` storage. When the task is complete, the sandbox evaporates—leaving zero machine residue, zero orphaned daemons, and zero credential leaks.
+
+### 4. Zero-Data-Leak Prompt Security Guard (Gitleaks, Presidio, OWASP LLM01)
+Never accidentally leak secrets or customer PII to external AI providers. RobOS intercepts every prompt in `<robos-ai-textarea>`, `AgentSession`, and `EmbeddedHarnessRouter`. It enforces open-source security standards: Gitleaks & TruffleHog secrets (AWS, GitHub, tokens, private keys, database URIs), Microsoft Presidio PII (Luhn-checked credit cards, SSNs, personal emails), Shannon entropy calculations, OWASP LLM01 prompt injection defenses, and 1-click in-place Auto-Redaction.
 
 ---
 

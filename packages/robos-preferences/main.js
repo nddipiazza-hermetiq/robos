@@ -133,6 +133,20 @@ const SETTINGS_SCHEMA = {
       ],
     },
     {
+      id: 'prompt_security',
+      label: 'Prompt Security & Guardrails',
+      fields: [
+        { key: 'prompt_security_mode', label: 'Security Policy Mode', type: 'select', options: ['redact', 'block', 'warn', 'audit-only', 'off'], default: 'redact' },
+        { key: 'prompt_security_scan_secrets', label: 'Scan Secrets & Credentials (Gitleaks / TruffleHog rules)', type: 'checkbox', default: true },
+        { key: 'prompt_security_scan_pii', label: 'Scan PII & Financial Data (Presidio / Luhn rules)', type: 'checkbox', default: true },
+        { key: 'prompt_security_scan_injection', label: 'Scan Prompt Injection & System Overrides (OWASP LLM01)', type: 'checkbox', default: true },
+        { key: 'prompt_security_entropy_check', label: 'High-Entropy Secret Detection (Shannon Entropy)', type: 'checkbox', default: true },
+        { key: 'prompt_security_entropy_threshold', label: 'Entropy Threshold (bits/char)', type: 'text', default: '4.5' },
+        { key: 'prompt_security_allowlist', label: 'Custom Allowlist (comma-separated tokens)', type: 'text', default: 'example.com,localhost,127.0.0.1' },
+        { key: 'prompt_security_blocklist', label: 'Custom Forbidden Terms (comma-separated keywords)', type: 'text', default: '' },
+      ],
+    },
+    {
       id: 'github',
       label: 'GitHub & Repos',
       fields: [

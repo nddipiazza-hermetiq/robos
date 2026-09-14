@@ -1,0 +1,33 @@
+Idea: RobOS Session Context Waste Detector & Inspector
+
+GUI to show sessions from any RobOS agent and show a multi-tab view of different ways to look at the context of the session and where the MBs of data are. Can be integrated directly into the RobOS Agents manager (packages/agents-manager) or launched as a dedicated context inspector.
+
+Problem & Motivation:
+- Long-running AI coding agent sessions (Google Antigravity, Claude Code, GitHub Copilot CLI, OpenAI Codex, RobOS UHP runners) accumulate massive context footprints (often 10 MB to 100+ MB in raw transcript logs and multi-million cumulative tokens).
+- Giant payloads degrade model reasoning ("lost in the middle" effect), cause severe latency delays, trigger context truncation/compaction, and burn through API token budgets.
+- Developers and architects currently have zero visibility into where the megabytes are actually going:
+  * Are tool outputs (npm build logs, test outputs, docker logs) spewing hundreds of KB?
+  * Is the agent repeatedly reading the same 3,000-line file without making edits?
+  * Are stale files read 40 turns ago still lingering as dead weight in the prompt window?
+  * How much is taken up by internal chain-of-thought (thoughts/reasoning) vs system prompts vs tool results?
+
+Key Capabilities:
+1. Multi-Agent Provider Session Ingestion:
+   - Google Antigravity (~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript*.jsonl)
+   - Anthropic Claude Code (~/.claude/projects/, ~/.claude/sessions/, history.jsonl)
+   - GitHub Copilot CLI (~/.copilot/session-state/<id>/)
+   - OpenAI Codex (~/.codex/state_*.sqlite)
+   - RobOS Embedded / UHP Harness (~/.config/robos/agent-sessions/<id>.json)
+
+2. Multi-Tab Context & Waste Visualizer GUI:
+   - Tab 1: Composition & Waste Breakdown (Treemap / Sunburst / Donut by category: Tool Output, File Ingestion, CoT/Thoughts, System & MCP Schemas, Conversation History, User Prompts; Overall Waste Score %).
+   - Tab 2: Payload Heavy-Hitters (Ranked leaderboard of single largest tool calls and outputs by bytes and tokens, with preview modal and waste classification tags).
+   - Tab 3: Context Watermark Growth Timeline (Step-by-step cumulative context chart showing sudden volume spikes, file load events, and compaction boundaries).
+   - Tab 4: Redundancy & Repetition Radar (Detects duplicate full-file reads, repetitive commands with identical outputs, redundant diffs, and unchanged directory scans).
+   - Tab 5: Stale Context & Dead Weight Inspector (Temporal decay analysis showing data ingested early that was never referenced again).
+   - Tab 6: Optimization & Trimming Studio (Actionable recommendations: trim verbose tool logs, deduplicate file reads, condense past milestones, export slim transcript, and resume session with pruned context).
+
+3. Integration Surface:
+   - First-class view / modal in RobOS Agents (packages/agents-manager) attached to every session card.
+   - Accessible from Agent Chat and Dev Central for proactive session health monitoring.
+   - Knowledge Graph logging (robos:SessionContextWasteAudit) to track agent efficiency across sprints.

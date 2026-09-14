@@ -70,7 +70,7 @@ RobOS applications are built using lightweight vanilla JavaScript and Electron, 
 </div>
 
 ### Shared System Libraries (`/usr/local/share/robos/`)
-- **`robos-lib`**: Desktop application management, `.desktop` file parsers, and live visual testing tools (`snapshot-cli.js`).
+- **`robos-lib`**: Desktop application management, `.desktop` file parsers, live visual testing tools (`snapshot-cli.js`), and zero-dependency OSS **Prompt Security Guard** (`prompt-security.js`: Gitleaks, TruffleHog, Presidio, OWASP LLM01, Shannon entropy).
 - **`robos-icons`**: Central SVG icon registry for all RobOS applications.
 - **`robos-graph`**: Open-standard OASIS OSLC 3.0 / W3C JSON-LD architecture parser, SHACL validator, and dual-state difference engine.
 - **`robos-test`**: Containerized headless test fabric (`Xvfb + Picom`), automated DOM assertions, and neural text-to-speech voiceover generator (Piper TTS).
@@ -85,6 +85,7 @@ Every application in the RobOS 30+ suite is backed by the SDLC Knowledge Graph (
 - **Microservices & APIs**: OpenAPI 3.1 contracts, Protobuf gRPC definitions, and GraphQL schemas are linked directly to `robos:Microservice` nodes.
 - **Cloud & Kubernetes**: `kube-studio` reconciles clusters (`robos:KubernetesCluster`) and GitOps applications (`robos:GitOpsDeployment`) in the `devops` package.
 - **AI Tooling & Context**: `mcp-manager` (`robos:MCPServer`), `agents-manager` (`robos:AgentPersona`), `task-servers` (`robos:TaskServer`), and `context-manager` (`robos:ContextSource`) are first-class ontology nodes.
+- **Prompt Security Governance**: `urn:robos:security:prompt-security-guard` is registered in `core-platform` as a validated architectural component enforcing prompt safety across all agent interactions.
 - **Zero Plaintext Credentials**: All credentials across all apps link to UNIX `pass` password-store paths via `robos:hasCredential` (`urn:robos:credential:...`).
 
 ---

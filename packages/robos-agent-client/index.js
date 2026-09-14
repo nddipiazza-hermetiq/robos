@@ -30,6 +30,19 @@ const {
 } = require('./harness-router');
 const { HarnessRouterBackend } = require('./harness-backend');
 
+const path = require('node:path');
+let promptSecurity = null;
+try {
+  const libPaths = [
+    process.env.ROBOS_LIB_PATH && path.join(process.env.ROBOS_LIB_PATH, 'prompt-security'),
+    path.resolve(__dirname, '..', 'robos-lib', 'prompt-security'),
+    '/usr/local/share/robos/robos-lib/prompt-security',
+  ].filter(Boolean);
+  for (const p of libPaths) {
+    try { promptSecurity = require(p); break; } catch {}
+  }
+} catch {}
+
 module.exports = {
   // Registry
   listAgents,
@@ -68,4 +81,9 @@ module.exports = {
   REVIEW_FIX_PROMPT,
   PR_DESCRIPTION_PROMPT,
   interpolate,
+
+  // Prompt Security
+  promptSecurity,
+  PromptSecurityGuard: promptSecurity ? promptSecurity.PromptSecurityGuard : null,
 };
+

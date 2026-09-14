@@ -2,7 +2,7 @@
 title: Remote Execution Studio & REAPI v2
 layout: default
 parent: RobOS Main Wins
-nav_order: 8
+nav_order: 14
 permalink: /big-wins/remote-execution-studio.html
 ---
 
