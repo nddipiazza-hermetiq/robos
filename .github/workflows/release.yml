@@ -140,6 +140,13 @@ jobs:
           # Installer ISO (bootable — flash to USB)
           cp infra/desktop/output/robos.iso release/robos-v${VERSION}.iso
 
+          # Check if ISO exceeds GitHub's 2GB asset limit (2,147,483,648 bytes)
+          if [ -f "release/robos-v${VERSION}.iso" ] && [ $(stat -c%s "release/robos-v${VERSION}.iso") -ge 2147483648 ]; then
+            echo "ISO exceeds GitHub 2GB asset limit ($(stat -c%s "release/robos-v${VERSION}.iso") bytes). Splitting into 1.9GB chunks..."
+            split -b 1900M "release/robos-v${VERSION}.iso" "release/robos-v${VERSION}.iso.part"
+            rm -f "release/robos-v${VERSION}.iso"
+          fi
+
           # Packages tarball
           tar czf release/robos-v${VERSION}-packages.tar.gz \
             --exclude='node_modules' --exclude='.git' --exclude='__pycache__' \
@@ -193,6 +200,13 @@ jobs:
             echo ""
             echo "**Alternative: Flash the ISO manually**"
             echo ""
+            if ls release/robos-v${VERSION}.iso.part* 1> /dev/null 2>&1; then
+              echo "Reassemble the split ISO parts before flashing:"
+              echo '```bash'
+              echo "cat robos-v${VERSION}.iso.part* > robos-v${VERSION}.iso"
+              echo '```'
+              echo ""
+            fi
             echo '```bash'
             echo "# Linux"
             echo "sudo dd if=robos-v${VERSION}.iso of=/dev/sdX bs=4M status=progress"
@@ -210,7 +224,7 @@ jobs:
             echo "| File | Description |"
             echo "|:-----|:------------|"
             echo "| \`RobOS-Installer-*\` | GUI installer app (Linux AppImage/deb, macOS dmg, Windows exe) |"
-            echo "| \`robos-v${VERSION}.iso\` | Bootable installer ISO — flash to USB, installs RobOS unattended |"
+            echo "| \`robos-v${VERSION}.iso*\` | Bootable installer ISO — flash to USB, installs RobOS unattended |"
             echo "| \`robos-v${VERSION}.qcow2\` | Ready-to-boot VM disk image |"
             echo "| \`robos-v${VERSION}-seed.iso\` | Cloud-init seed ISO for VM provisioning |"
             echo "| \`robos-v${VERSION}-packages.tar.gz\` | All RobOS Electron app packages |"
@@ -238,7 +252,7 @@ jobs:
             echo "- USB flash drive (4 GB+) for bare-metal install"
             echo "- Or: QEMU/KVM for VM usage"
             echo ""
-            echo "**[Documentation](https://nddipiazza.github.io/robos/)** | **[Getting Started](https://nddipiazza.github.io/robos/getting-started.html)**"
+            echo "**[Documentation](https://rowbose.com)** | **[Installation / Getting Started](https://rowbose.com/getting-started.html)**"
           } > release/RELEASE-NOTES.md
 
           {
@@ -254,7 +268,7 @@ jobs:
           body: ${{ steps.notes.outputs.body }}
           files: |
             release/RobOS-Installer-*
-            release/robos-v${{ steps.version.outputs.version }}.iso
+            release/robos-v${{ steps.version.outputs.version }}.iso*
             release/robos-v${{ steps.version.outputs.version }}.qcow2
             release/robos-v${{ steps.version.outputs.version }}-seed.iso
             release/robos-v${{ steps.version.outputs.version }}-packages.tar.gz
