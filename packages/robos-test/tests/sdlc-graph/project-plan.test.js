@@ -60,3 +60,22 @@ test('network failure prevents preview and mixed repositories require disambigua
  const second=input();second.id='other';second.repository='example/another';second.items=second.items.map(i=>({...i,url:i.url.replace('/tracker/','/another/'),...(i.parent?{parent:i.parent.replace('/tracker/','/another/')}:{})}));
  ws.apply(proposePlan(dir,second,fetchIssue));assert.throws(()=>viewPlan(dir,'2'),/ambiguous/);
 });
+test('plan edits preserve legacy certificates and existing retirements without weakening evidence checks',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'robos-plan-legacy-'));
+ const ws=new GraphWorkspace(dir),doc=ws.empty('Legacy graph');
+ const legacy={'@id':'urn:example:legacy-certificate','@type':['robos:CertificateOfCompletion'],'dcterms:title':'Existing certificate','robos:package':'learning','robos:recipientUser':'learner','robos:forCourse':'urn:example:course','robos:issueDate':'2026-09-26T12:37:10.006Z','robos:scorePercentage':100};
+ doc['robos:nodes'].push({'@id':'urn:example:course','@type':['schema:CreativeWork'],'dcterms:title':'Existing course','robos:package':'learning'},legacy,{'@id':'urn:example:old-person','@type':['robos:Person'],'dcterms:title':'Old person','robos:package':'organization'});
+ ws.apply(ws.propose({mode:'replace',document:doc}));
+ ws.apply(ws.propose({mode:'refine',edits:[{op:'remove',id:'urn:example:old-person'}]}));
+ const before=ws.state().retired;
+ const proposal=proposePlan(dir,input(),fetchIssue);
+ assert.equal(proposal.validation.conforms,true,JSON.stringify(proposal.validation.errors));
+ assert.deepEqual(proposal.delta.removed,[]);assert.deepEqual(proposal.retired,before);
+ assert.equal(proposal.request.evidenceScope,'edited');
+ ws.apply(proposal);
+ assert.deepEqual(ws.read()['robos:nodes'].find(n=>n['@id']===legacy['@id']),legacy);
+ const missing=ws.propose({mode:'refine',requireEvidence:true,evidenceScope:'edited',edits:[{op:'update',id:legacy['@id'],set:{'dcterms:title':'Changed'}}]});
+ assert.equal(missing.validation.conforms,false);assert.match(missing.validation.errors.join('\n'),/missing evidence/);
+ const remove=proposeRemovePlan(dir,'delivery');assert.equal(remove.validation.conforms,true);ws.apply(remove);
+ assert.deepEqual(ws.read()['robos:nodes'].find(n=>n['@id']===legacy['@id']),legacy);
+});

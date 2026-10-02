@@ -70,7 +70,7 @@ function proposePlan(root, input, fetchIssue = readIssue) {
     const { '@id': id, ...set } = node;
     return { op: 'update', id, set, ...(node['robos:inProject']?{unset:['robos:inFeature','robos:dependsOn','robos:relationshipEvidence'].filter(key=>!(key in set))}:{}) };
   });
-  return ws.propose({ mode: 'refine', edits, prompt: `Create/update reviewed project plan: ${plan.name}`, requireEvidence: true });
+  return ws.propose({ mode: 'refine', edits, prompt: `Create/update reviewed project plan: ${plan.name}`, requireEvidence: true, evidenceScope: 'edited' });
 }
 function viewPlan(root, selector, repository, fetchIssue = readIssue) {
   const all = plans(root);
@@ -95,7 +95,7 @@ function proposeRemovePlan(root, selector) {
   const plan = exportPlan(root, selector);
   const ws = new GraphWorkspace(root);
   return ws.propose({ mode: 'refine', edits: [{ op: 'update', id: plan.graphId, set: {}, unset: ['robos:planJson'] }],
-    prompt: `Remove saved plan only: ${plan.name}. Preserve project, work items, relationships and GitHub issues.`, requireEvidence: true });
+    prompt: `Remove saved plan only: ${plan.name}. Preserve project, work items, relationships and GitHub issues.`, requireEvidence: true, evidenceScope: 'edited' });
 }
 function registerPlanIPC(ipcMain, root, refresh = () => {}) {
   let pending;
