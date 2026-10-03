@@ -334,7 +334,11 @@ function escHtml(str) {
 }
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await customElements.whenDefined('robos-ai-textarea');
+  const composer=window.createRobosChatComposer({id:'prompt-input'});
+  document.getElementById('prompt-composer-mount').replaceWith(composer);
+  composer.configureChatComposer();
   init();
 
   document.getElementById('btn-run').addEventListener('click', runPrompt);

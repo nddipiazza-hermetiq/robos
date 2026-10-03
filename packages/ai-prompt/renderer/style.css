@@ -131,3 +131,5 @@ html, body { height: 100%; background: var(--bg-primary); color: var(--text); fo
 .prompt-chat-heading{display:flex;justify-content:space-between;gap:16px;margin:12px 0;color:#a8b5c3;font-size:12px}#prompt-chat{max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:12px;margin-bottom:16px}.prompt-bubble{border:1px solid #303d4b;background:#141e29;border-radius:8px;padding:12px 16px;max-width:90%;white-space:pre-wrap;line-height:1.6;overflow-wrap:anywhere}.prompt-bubble small{display:block;color:#9bb2c9;margin-bottom:5px}.prompt-bubble.user{align-self:flex-end;background:#1a2a3a}.prompt-bubble.assistant{align-self:flex-start}.prompt-bubble.activity{font-size:13px;color:#a6b8c9}.prompt-bubble.error{border-color:#ad6262}
 
 #btn-run{display:none}
+
+

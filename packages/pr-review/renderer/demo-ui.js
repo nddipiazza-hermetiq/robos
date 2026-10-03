@@ -49,14 +49,11 @@ window.mountWalkthrough = async function () {
   let pendingMessage = null;
   const receipt = document.createElement('div'); receipt.className = 'walkthrough-receipt'; receipt.setAttribute('role', 'status');
   const form = document.createElement('div'); form.className = 'walkthrough-compose';
-  const input = document.createElement('robos-ai-textarea');
-  input.setAttribute('min-height', '64'); input.setAttribute('max-chars', '16000');
-  input.setAttribute('show-agent', 'false');
-  input.setAttribute('placeholder', 'Ask a question or request a change at this checkpoint…');
+  const input = window.createRobosChatComposer({placeholder:'Ask a question or request a change at this checkpoint…',label:'Message the demo agent'});
   const error = document.createElement('p'); error.className = 'walkthrough-error'; error.setAttribute('role', 'alert');
   form.append(input, progress, receipt); stage.append(bar, checkpoint, stepActions, chatHeader, chat, error, form);
-  const send = input.querySelector('.robos-submit-btn'); send.textContent = 'Send'; send.type = 'button';
-  const editable = input.querySelector('.robos-ai-inner'); editable.setAttribute('role', 'textbox'); editable.setAttribute('aria-label', 'Message the demo agent'); editable.setAttribute('aria-multiline', 'true');
+  input.configureChatComposer();
+  const send = input.querySelector('.robos-submit-btn');
   const dialog = document.createElement('dialog'); dialog.className = 'walkthrough-process';
   const heading = document.createElement('h3'); heading.textContent = 'Project demo process';
   const hint = document.createElement('p'); hint.textContent = 'Edit demo instructions, checkpoint intent, and the optional before-change walkthrough. Saving restarts the walkthrough at its beginning. The agent executable is configured separately on this workstation.';

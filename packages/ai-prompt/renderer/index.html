@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="../../robos-ui/chat-composer.js"></script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RobOS AI Prompt</title>
@@ -56,9 +57,7 @@
             <div id="skill-chips" class="skill-chips"></div>
           </div>
           <div class="prompt-chat-heading"><strong>Conversation</strong><label><input id="follow-latest" type="checkbox" checked> Follow latest</label></div><div id="prompt-chat" role="log" aria-label="Agent conversation"></div>
-          <robos-ai-textarea id="prompt-input" show-commands="false"
-            placeholder="e.g. Show me the top 10 processes by memory usage — e.g. Find all .log files larger than 50MB in /var — e.g. List all Docker containers and their port mappings"
-            min-height="64"></robos-ai-textarea>
+          <div id="prompt-composer-mount"></div>
           <div class="prompt-actions">
             <button class="btn btn-accent" id="btn-run">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
