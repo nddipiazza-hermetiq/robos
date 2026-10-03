@@ -2,6 +2,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('robos', {
+  onProgress: callback => ipcRenderer.on('ap-progress',(_,update)=>callback(update)),
   questionnaireContext: () => ipcRenderer.invoke('ap-questionnaire-context'),
   onQuestionnaireContext: callback => ipcRenderer.on('ap-questionnaire-context',(_,context)=>callback(context)),
   listSkills:          ()         => ipcRenderer.invoke('ap-list-skills'),

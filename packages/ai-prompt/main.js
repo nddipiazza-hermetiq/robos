@@ -201,7 +201,7 @@ ipcMain.handle('ap-scan-prompt', (_, text) => {
   return guard.scan(text);
 });
 
-ipcMain.handle('ap-run-prompt', async (_, { prompt, skillHints, model, agent, questionnaireId }) => {
+ipcMain.handle('ap-run-prompt', async (event, { prompt, skillHints, model, agent, questionnaireId, runId, conversation }) => {
   if (!prompt || !prompt.trim()) return { ok: false, error: 'Empty prompt' };
 
   const helpContext=questionnaireId && questionnaireContext?.id===questionnaireId ? questionnaireContext : null;
@@ -222,12 +222,16 @@ ipcMain.handle('ap-run-prompt', async (_, { prompt, skillHints, model, agent, qu
   }
 
   const selectedAgent = agent || 'claude';
+  const progress=update=>{if(!event.sender.isDestroyed())event.sender.send('ap-progress',{...update,runId});};
 
   const skillContext = !helpContext && skillHints && skillHints.length
     ? `\n\nAvailable skills/tools to use:\n${skillHints.map(s => `- ${s.name}: \`${s.command}\``).join('\n')}`
     : '';
 
   const systemPrompt = `You are RobOS AI Prompt — an AI assistant that helps developers perform operating system and development tasks on a Linux desktop.
+
+${conversation ? `Earlier conversation (context only): ${JSON.stringify(conversation.slice(-20))}` : ""}
+Send short public status updates as you work. Do not expose private reasoning or credentials.
 
 The user has asked you to perform the following task:
 "${effectivePrompt}"
@@ -257,46 +261,27 @@ ${helpContext ? '- Answer the clarification question using the supplied context 
 
 ${JSON_RULES_PROMPT}
 
-Return ONLY the JSON object. No markdown code fences, no extra text.`;
+Send public progress messages while working. Your final response must be ONLY the JSON object, without markdown fences.`;
 
   try {
-    const text = await new Promise((resolve, reject) => {
-      let child;
-      if (selectedAgent === 'copilot') {
-        const spawnOpts = { stdio: ['ignore', 'pipe', 'pipe'] };
-        child = cp.spawn('gh', ['copilot', '--', '-p', systemPrompt, '--allow-all-tools', '--silent'], spawnOpts);
-      } else {
-        // Claude CLI: pass prompt via stdin (write + end = immediate EOF, no wait)
-        child = cp.spawn('claude', ['--print', '--output-format', 'json'].concat(model ? ['--model', model] : []), {
-          stdio: ['pipe', 'pipe', 'pipe']
-        });
-        child.stdin.write(systemPrompt);
-        child.stdin.end();
-      }
-      let stdout = '', stderr = '';
-      child.stdout.on('data', d => { stdout += d; });
-      child.stderr.on('data', d => { stderr += d; });
-      const timer = setTimeout(() => { child.kill(); reject(new Error('Timed out after 5 minutes')); }, 300000);
-      child.on('close', code => {
-        clearTimeout(timer);
-        if (code !== 0 && !stdout) reject(new Error(stderr || 'AI agent failed'));
-        else resolve(stdout);
-      });
+    const aiText = await new Promise((resolve, reject) => {
+      const provider=selectedAgent.includes('codex')?'codex':selectedAgent.includes('copilot')?'copilot':'claude';
+      const {AgentPublicStream}=require('../robos-lib/agent-public-stream');
+      const stream=new AgentPublicStream(provider,progress);
+      const args=provider==='codex'?['exec','--json','--skip-git-repo-check',...(helpContext?['--sandbox','read-only']:[]),'-']:provider==='claude'?['--print','--verbose','--output-format','stream-json',...(model?['--model',model]:[])]:['-p',systemPrompt,'--allow-all-tools'];
+      const child=cp.spawn(provider,args,{stdio:['pipe','pipe','pipe']});
+      let errorText='',settled=false;
+      const finish=(error,text)=>{if(settled)return;settled=true;clearTimeout(timer);error?reject(error):resolve(text);};
+      const timer=setTimeout(()=>{child.kill();finish(Error('Timed out after 5 minutes'));},300000);
+      child.stdout.on('data',d=>{try{stream.push(d);}catch(e){child.kill();finish(e);}});
+      child.stderr.on('data',d=>{errorText=(errorText+d).slice(-2000);});
+      child.on('error',e=>finish(e));
+      child.stdin.on('error',()=>{});
+      child.on('close',code=>{try{const text=stream.end();finish(code?Error(errorText||'Agent exited '+code):null,text);}catch(e){finish(e);}});
+      progress({kind:'activity',text:'Connecting to '+provider+'…'});
+      child.stdin.end(provider==='copilot'?'':systemPrompt);
     });
-
     let parsed;
-    // For claude CLI with --output-format json, response is wrapped:
-    // { "type": "result", "result": "<AI text>", "is_error": bool, ... }
-    let aiText = text;
-    if (selectedAgent !== 'copilot') {
-      let outer = null;
-      try { outer = JSON.parse(text.trim()); } catch { /* raw text fallback */ }
-      if (outer) {
-        if (outer.is_error) throw new Error(outer.result || 'Claude CLI error');
-        if (typeof outer.result === 'string') aiText = outer.result;
-      }
-    }
-
     // Try to parse as structured JSON
     let parseError = null;
     if (aiJson) {

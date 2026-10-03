@@ -7,8 +7,17 @@ let skillParams = {};     // { [skillId]: { [paramName]: value } }
 let skillFilter = '';
 let historyVisible = false;
 let running = false;
+let currentRun=null;let conversation=[];
+function chatBubble(role,text,kind='message'){
+ const chat=document.getElementById('prompt-chat');const el=document.createElement('article');el.className='prompt-bubble '+role+' '+kind;
+ const label=document.createElement('small');label.textContent=role==='user'?'You':'Agent';const body=document.createElement('div');body.textContent=text;el.append(label,body);chat.append(el);
+ if(document.getElementById('follow-latest').checked)chat.scrollTop=chat.scrollHeight;
+ return body;
+}
+
 let questionnaireContext=null;
 function showQuestionnaireHelp(context){
+ if(questionnaireContext?.id!==context.id){conversation=[];document.getElementById('prompt-chat').replaceChildren();}
  questionnaireContext=context;
  let panel=document.getElementById('questionnaire-help-context');
  if(!panel){panel=document.createElement('details');panel.id='questionnaire-help-context';panel.style.cssText='margin:12px 0;padding:12px;border:1px solid #46515e;white-space:pre-wrap';document.getElementById('prompt-input').before(panel);}
@@ -53,6 +62,7 @@ if (!window.robos) {
 // ── Boot ─────────────────────────────────────────────────────────────────────
 async function init() {
   window.robos.onQuestionnaireContext?.(showQuestionnaireHelp);
+  window.robos.onProgress?.(update=>{if(update.runId!==currentRun)return;const text=update.text||'';if(text.trim().startsWith('{'))return;chatBubble('assistant',text,update.kind);});
   const r = await window.robos.listSkills();
   if (r.ok) {
     customSkills = r.custom || [];
@@ -211,18 +221,24 @@ async function runPrompt() {
   const agent = inputEl && inputEl.agent ? inputEl.agent : 'copilot';
   const effectivePrompt = prompt || 'Run the selected skills and show me the results.';
 
-  const r = await window.robos.runPrompt({ prompt: effectivePrompt, skillHints, agent, questionnaireId:questionnaireContext?.id });
+  currentRun=crypto.randomUUID();
+  chatBubble('user',effectivePrompt);
+  inputEl.value='';
+  let r;try{r=await window.robos.runPrompt({ prompt: effectivePrompt, skillHints, agent, questionnaireId:questionnaireContext?.id,runId:currentRun,conversation });}catch(e){r={ok:false,error:e.message};}
+  conversation.push({role:'user',text:effectivePrompt});
+  currentRun=null;
 
   setRunning(false);
   running = false;
 
   if (!r.ok) {
-    setStatus('Error: ' + r.error, true);
+    chatBubble('assistant',r.error,'error');setStatus('Error: ' + r.error, true);
     return;
   }
 
   setStatus('');
-  displayResults(r.result);
+  const reply=[r.result.summary,r.result.result].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join('\n\n');
+  chatBubble('assistant',reply);conversation.push({role:'assistant',text:reply});
   document.getElementById('btn-clear-prompt').style.display = 'inline-flex';
 }
 
@@ -231,8 +247,9 @@ function setRunning(isRunning) {
   const spinner = document.getElementById('btn-run-spinner');
   const text = document.getElementById('btn-run-text');
   btn.disabled = isRunning;
+  const submit=document.querySelector('#prompt-input .robos-submit-btn');if(submit){submit.disabled=isRunning;submit.textContent=isRunning?'Agent is running…':'Send';}
   spinner.style.display = isRunning ? 'inline-block' : 'none';
-  text.textContent = isRunning ? 'Running…' : 'Run with AI';
+  text.textContent = isRunning ? 'Agent is running…' : 'Send';
 }
 
 function setStatus(msg, isError = false) {
@@ -321,6 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
   init();
 
   document.getElementById('btn-run').addEventListener('click', runPrompt);
+  document.getElementById('prompt-input').addEventListener('robos-submit',runPrompt);
 
   document.getElementById('prompt-input').addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runPrompt();
@@ -361,6 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-new-prompt').addEventListener('click', () => {
+    if(running)return;conversation=[];questionnaireContext=null;document.getElementById('prompt-chat').replaceChildren();document.getElementById('questionnaire-help-context')?.remove();
     document.getElementById('results-section').style.display = 'none';
     document.getElementById('prompt-input').focus();
   });
