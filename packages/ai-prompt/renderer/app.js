@@ -86,6 +86,7 @@ async function init() {
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 function renderSidebar() {
   const container = document.getElementById('skills-list');
+  if (!container) return;
   const q = skillFilter.toLowerCase();
   const filtered = allSkills.filter(s =>
     !q || s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q) ||
@@ -386,11 +387,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(running)return;conversation=[];questionnaireContext=null;document.getElementById('prompt-chat').replaceChildren();document.getElementById('questionnaire-help-context')?.remove();
     document.getElementById('results-section').style.display = 'none';
     document.getElementById('prompt-input').focus();
-  });
-
-  document.getElementById('skill-search').addEventListener('input', e => {
-    skillFilter = e.target.value;
-    renderSidebar();
   });
 
   document.getElementById('btn-history-toggle').addEventListener('click', () => toggleHistory());

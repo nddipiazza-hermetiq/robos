@@ -37,18 +37,7 @@
     </header>
 
     <div id="main-layout" class="main-layout">
-      <!-- Left: skills sidebar -->
-      <aside id="skills-sidebar" class="skills-sidebar">
-        <div class="sidebar-header">
-          <span class="sidebar-title">Skills</span>
-          <input type="text" id="skill-search" class="skill-search-input" placeholder="Filter…"/>
-        </div>
-        <div id="skills-list" class="skills-list">
-          <div class="sidebar-empty">No custom skills yet.<br/>Open Skills Manager to add some.</div>
-        </div>
-      </aside>
-
-      <!-- Right: prompt + results -->
+      <!-- Conversation -->
       <div class="prompt-panel">
         <!-- Prompt input -->
         <section class="prompt-section card">
@@ -65,7 +54,7 @@
               <span id="btn-run-spinner" class="spinner" style="display:none"></span>
             </button>
             <button class="btn btn-outline" id="btn-clear-prompt" style="display:none">Clear</button>
-            <span id="run-hint" class="status-text muted">Select a skill or enter a prompt</span>
+            <span id="run-hint" class="status-text muted">Enter a message</span>
             <span id="run-status" class="status-text"></span>
           </div>
         </section>
