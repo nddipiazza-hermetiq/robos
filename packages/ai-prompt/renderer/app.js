@@ -24,7 +24,7 @@ function showQuestionnaireHelp(context){
  panel.replaceChildren();const title=document.createElement('summary');title.textContent='Questionnaire context attached · clarification only';panel.append(title);
  const body=document.createElement('p');body.textContent=context.context+'\n\n'+context.questions.map(q=>q.prompt+(context.answers[q.id]?'\nYour draft answer: '+context.answers[q.id]:'')).join('\n\n');panel.append(body);
  selectedSkillIds.clear();renderSidebar();
- document.getElementById('prompt-input').value='Explain what this question is asking and what information I need to answer it.';
+ document.getElementById('prompt-input').value='';
  document.getElementById('prompt-input').focus();updateRunButton();
 }
 
