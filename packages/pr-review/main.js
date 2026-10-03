@@ -35,6 +35,20 @@ if (demoSession && localReview.resumeStatePath) {
     while (Buffer.byteLength(JSON.stringify(demoSession.messages)) > 128 * 1024) demoSession.messages.shift();
   }
 }
+const questionnaire = require('../robos-lib/agent-question-window');
+questionnaire.register();
+const questionHook = demoSession ? require('./lib/agent-questionnaire').attach({
+  session: demoSession, source: process.env.ROBOS_LOCAL_REVIEW, kind: 'walkthrough',
+  resume: async text => {
+    if (reviewPublisher?.pending || prState?.pending) throw Error('A PR update is in progress.');
+    if (localReview.pullRequest) await prState.assertAuthor();
+    return demoSession.act('message', text);
+  },
+  show: id => { if (app.isReady()) questionnaire.open(id); else app.once('ready', () => questionnaire.open(id)); },
+  notify: item => questionnaire.notify(item)
+}) : null;
+app.on('before-quit', () => questionHook?.stop());
+app.whenReady().then(() => questionHook?.observeCurrent());
 demoSession?.on('state', state => { if (win && !win.isDestroyed()) win.webContents.send('demo-state', state); });
 ipcMain.handle('demo-state', () => demoSession?.state() || null);
 ipcMain.handle('demo-action', async (_, { action, text } = {}) => { try { if (!demoSession) throw new Error('No project demo process configured.'); if (reviewPublisher?.pending || prState?.pending) throw new Error('A PR update is in progress.');if(localReview?.pullRequest && action!=='explain')await prState.assertAuthor(); return { ok: true, state: await demoSession.act(action, text) }; } catch (e) { return { ok: false, error: e.message }; } });

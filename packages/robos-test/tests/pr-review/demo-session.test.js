@@ -119,3 +119,30 @@ test('compact skill references resolve for the agent without expanding saved cha
  const prompts=[];const s=session(async p=>{prompts.push(p);return {reply:'Ready',checkpointReached:true};});await s.act('start');await s.act('message','@skill(kgraph-search) Find the filter component');
  assert.match(prompts.at(-1),/Selected skill: Search Knowledge Graph/);assert.match(prompts.at(-1),/kgraph-cli\.js search/);assert.equal(s.messages.filter(m=>m.role==='user').at(-1).text,'@skill(kgraph-search) Find the filter component');
 });
+
+test('correction dialog opens for missing tools and answers retry the failed step', async () => {
+ const {attach}=require('../../../pr-review/lib/agent-questionnaire');
+ const {AgentQuestions}=require('../../../robos-lib/agent-questions');
+ const store=new AgentQuestions(fs.mkdtempSync(path.join(os.tmpdir(),'correction-test-')));
+ let fail=false; const prompts=[]; const shown=[];
+ const s=session(async p=>{prompts.push(p);return {reply:fail?'Chrome DevTools MCP is unavailable.':'Observed',checkpointReached:!fail};});
+ const hook=attach({session:s,source:'test-review',kind:'walkthrough',store,show:id=>shown.push(id),notify:()=>({}),resume:text=>s.act('message',text)});
+ try {
+  await s.act('start');fail=true;await s.act('next');
+  assert.equal(s.index,0);assert.equal(s.failedIndex,1);assert.equal(shown.length,1);
+  hook.observeCurrent();assert.equal(shown.length,1);
+  const item=store.read(shown[0]);assert.match(item.context,/Chrome DevTools/);
+  store.answer(item.id,{q0:'Use the configured browser connection.'});fail=false;await hook.consume();
+  assert.match(prompts.at(-1),/Checkpoint 2\/2/);assert.match(prompts.at(-1),/configured browser/);
+  assert.equal(s.index,1);assert.equal(store.read(item.id).status,'resolved');
+ } finally {hook.stop();}
+});
+
+test('runner exceptions also open correction questions without completing the step', async () => {
+ const {attach}=require('../../../pr-review/lib/agent-questionnaire');
+ const {AgentQuestions}=require('../../../robos-lib/agent-questions');
+ const store=new AgentQuestions(fs.mkdtempSync(path.join(os.tmpdir(),'correction-error-')));const shown=[];
+ const s=session(async()=>{throw Error('Agent disconnected');});
+ const hook=attach({session:s,source:'test',kind:'walkthrough',store,show:id=>shown.push(id),notify:()=>({}),resume:()=>{}});
+ try{await s.act('start');assert.equal(shown.length,1);assert.equal(s.index,-1);assert.equal(s.status,'error');}finally{hook.stop();}
+});
