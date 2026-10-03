@@ -87,6 +87,9 @@ function saveHistory(history) {
 
 // ── App window ────────────────────────────────────────────────────────────────
 let mainWindow;
+const {readHelp,helpPrompt}=require('../robos-lib/agent-question-help');
+let questionnaireContext=readHelp(process.argv);
+ipcMain.handle('ap-questionnaire-context',()=>questionnaireContext);
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1100, height: 800,
@@ -99,14 +102,15 @@ function createWindow() {
     title: 'RobOS AI Prompt',
     autoHideMenuBar: true,
   });
-  mainWindow.loadFile('renderer/index.html');
+  mainWindow.loadFile(path.join(__dirname,'renderer/index.html'));
   if (_debugServer) {
     _debugServer.registerSnapshotIPC && _debugServer.registerSnapshotIPC(mainWindow);
     _debugServer.startDebugServer(mainWindow, 19140, 'ai-prompt');
   }
 }
 
-app.on('second-instance', () => {
+app.on('second-instance', (_,argv) => {
+  try { const context=readHelp(argv); if(context){questionnaireContext=context;mainWindow?.webContents.send('ap-questionnaire-context',context);} } catch(e){log.warn('questionnaire-help',e.message);}
   if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); }
 });
 app.whenReady().then(createWindow);
@@ -197,10 +201,11 @@ ipcMain.handle('ap-scan-prompt', (_, text) => {
   return guard.scan(text);
 });
 
-ipcMain.handle('ap-run-prompt', async (_, { prompt, skillHints, model, agent }) => {
+ipcMain.handle('ap-run-prompt', async (_, { prompt, skillHints, model, agent, questionnaireId }) => {
   if (!prompt || !prompt.trim()) return { ok: false, error: 'Empty prompt' };
 
-  let effectivePrompt = prompt.trim();
+  const helpContext=questionnaireId && questionnaireContext?.id===questionnaireId ? questionnaireContext : null;
+  let effectivePrompt = helpContext ? helpPrompt(helpContext,prompt.trim()) : prompt.trim();
   let securityFindings = [];
   if (promptSecurity) {
     const guard = new promptSecurity.PromptSecurityGuard();
@@ -218,7 +223,7 @@ ipcMain.handle('ap-run-prompt', async (_, { prompt, skillHints, model, agent }) 
 
   const selectedAgent = agent || 'claude';
 
-  const skillContext = skillHints && skillHints.length
+  const skillContext = !helpContext && skillHints && skillHints.length
     ? `\n\nAvailable skills/tools to use:\n${skillHints.map(s => `- ${s.name}: \`${s.command}\``).join('\n')}`
     : '';
 
@@ -244,7 +249,7 @@ Please perform this task and return a structured JSON result describing exactly 
 }
 
 Guidelines:
-- Actually run commands using your shell tool if needed
+${helpContext ? '- Answer the clarification question using the supplied context only. Do not execute tools or change anything.' : '- Actually run commands using your shell tool if needed'}
 - Include all commands you run in the steps array
 - Be specific and accurate — include real output
 - If a command fails, set success to false and explain in the result field

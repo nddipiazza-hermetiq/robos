@@ -4,7 +4,18 @@ const windows=new Map();
 function open(id){const {BrowserWindow}=require('electron');const store=new AgentQuestions();store.read(id);if(windows.has(id)){windows.get(id).show();windows.get(id).focus();return;}
  const win=new BrowserWindow({width:650,height:680,minWidth:460,minHeight:420,title:'RobOS · Agent questionnaire',backgroundColor:'#101923',autoHideMenuBar:true,webPreferences:{contextIsolation:true,preload:path.join(__dirname,'agent-question-preload.js')}});windows.set(id,win);win.on('closed',()=>windows.delete(id));win.loadFile(path.join(__dirname,'agent-question.html'),{query:{id}});
 }
-function register(){const {ipcMain,BrowserWindow}=require('electron');ipcMain.on('agent-question-close',event=>{const win=BrowserWindow.fromWebContents(event.sender);if(win&&[...windows.values()].includes(win))win.close();});const store=new AgentQuestions();ipcMain.handle('agent-question-read',(_,id)=>store.read(id));ipcMain.handle('agent-question-answer',(_,id,answers)=>{try{store.answer(id,answers);return {ok:true};}catch(e){return {ok:false,error:e.message};}});ipcMain.handle('agent-question-open',(_,id)=>{try{open(id);return {ok:true};}catch(e){return {ok:false,error:e.message};}});}
+function register(){const {ipcMain,BrowserWindow}=require('electron');ipcMain.on('agent-question-close',event=>{const win=BrowserWindow.fromWebContents(event.sender);if(win&&[...windows.values()].includes(win))win.close();});const store=new AgentQuestions();ipcMain.handle('agent-question-help',async(event,id,answers)=>{
+ const win=BrowserWindow.fromWebContents(event.sender);
+ if(win!==windows.get(id))return {ok:false,error:'Open this questionnaire before requesting help.'};
+ try {
+  const item=store.read(id);const helpDraft={};
+  for(const q of item.questions){const value=answers?.[q.id];if(typeof value==='string')helpDraft[q.id]=value.slice(0,8000);}
+  store.save({...item,helpDraft});
+  const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
+  await new Promise((resolve,reject)=>{const child=require('node:child_process').spawn(process.execPath,['--no-sandbox','--disable-gpu',path.resolve(__dirname,'../ai-prompt'),'--questionnaire-help='+id],{env,detached:true,stdio:'ignore'});child.once('error',reject);child.once('spawn',()=>{child.unref();resolve();});});
+  return {ok:true};
+ }catch(e){return {ok:false,error:e.message};}
+});ipcMain.handle('agent-question-read' ,(_,id)=>store.read(id));ipcMain.handle('agent-question-answer',(_,id,answers)=>{try{store.answer(id,answers);return {ok:true};}catch(e){return {ok:false,error:e.message};}});ipcMain.handle('agent-question-open',(_,id)=>{try{open(id);return {ok:true};}catch(e){return {ok:false,error:e.message};}});}
 function notify(item){
  if(process.platform==='linux'){
   const {EventEmitter}=require('node:events'),{spawn}=require('node:child_process');const event=new EventEmitter();let id;let buffer='';

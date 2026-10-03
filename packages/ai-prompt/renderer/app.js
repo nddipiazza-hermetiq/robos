@@ -7,6 +7,18 @@ let skillParams = {};     // { [skillId]: { [paramName]: value } }
 let skillFilter = '';
 let historyVisible = false;
 let running = false;
+let questionnaireContext=null;
+function showQuestionnaireHelp(context){
+ questionnaireContext=context;
+ let panel=document.getElementById('questionnaire-help-context');
+ if(!panel){panel=document.createElement('details');panel.id='questionnaire-help-context';panel.style.cssText='margin:12px 0;padding:12px;border:1px solid #46515e;white-space:pre-wrap';document.getElementById('prompt-input').before(panel);}
+ panel.replaceChildren();const title=document.createElement('summary');title.textContent='Questionnaire context attached · clarification only';panel.append(title);
+ const body=document.createElement('p');body.textContent=context.context+'\n\n'+context.questions.map(q=>q.prompt+(context.answers[q.id]?'\nYour draft answer: '+context.answers[q.id]:'')).join('\n\n');panel.append(body);
+ selectedSkillIds.clear();renderSidebar();
+ document.getElementById('prompt-input').value='Explain what this question is asking and what information I need to answer it.';
+ document.getElementById('prompt-input').focus();updateRunButton();
+}
+
 
 // ── Parameter parsing ─────────────────────────────────────────────────────────
 function extractParams(command) {
@@ -40,12 +52,13 @@ if (!window.robos) {
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 async function init() {
+  window.robos.onQuestionnaireContext?.(showQuestionnaireHelp);
   const r = await window.robos.listSkills();
   if (r.ok) {
     customSkills = r.custom || [];
     allSkills = [...(r.builtin || []), ...customSkills];
     renderSidebar();
-    if (window.__mockMode || !window.robos || window.location.protocol === 'file:') {
+    if (window.__mockMode) {
       toggleSkill('db-migrate');
       toggleSkill('bruno-test');
       setTimeout(() => {
@@ -57,6 +70,7 @@ async function init() {
       }, 80);
     }
   }
+  const context=await window.robos.questionnaireContext?.();if(context)showQuestionnaireHelp(context);
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -197,7 +211,7 @@ async function runPrompt() {
   const agent = inputEl && inputEl.agent ? inputEl.agent : 'copilot';
   const effectivePrompt = prompt || 'Run the selected skills and show me the results.';
 
-  const r = await window.robos.runPrompt({ prompt: effectivePrompt, skillHints, agent });
+  const r = await window.robos.runPrompt({ prompt: effectivePrompt, skillHints, agent, questionnaireId:questionnaireContext?.id });
 
   setRunning(false);
   running = false;
