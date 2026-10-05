@@ -1,0 +1,22 @@
+const {chromium}=require(process.env.ROBOS_PLAYWRIGHT_MODULE||'playwright');
+const assert=require('node:assert/strict'),path=require('node:path');
+(async()=>{const b=await chromium.launch({headless:true,executablePath:process.env.ROBOS_CHROMIUM_PATH,args:['--no-sandbox']});try{const p=await b.newPage({viewport:{width:1400,height:900}});
+ await p.setContent('<div class="theater-window" style="display:flex;flex-direction:column;height:850px"><div class="theater-actions"></div><div class="theater-stage-content"><div class="theater-stage active" id="stage-3">File changes</div><div class="theater-stage" id="stage-6"></div></div></div>');
+ await p.evaluate(()=>{
+  customElements.define('robos-ai-textarea',class extends HTMLElement{connectedCallback(){if(this.querySelector('textarea'))return;this.innerHTML='<textarea class="robos-ai-inner"></textarea><button class="robos-submit-btn">Send</button>';this.querySelector('button').onclick=()=>this.dispatchEvent(new CustomEvent('robos-submit',{detail:{value:this.value}}));}get value(){return this.querySelector('textarea')?.value||'';}set value(v){this.querySelector('textarea').value=v;}});
+  window.state={status:'idle',index:-1,total:1,process:{checkpoints:[{title:'Try the UI'}]},messages:[]};window.listeners=[];window.sent=[];
+  window.api={getDemoState:async()=>state,onDemoState:fn=>{listeners.push(fn);return ()=>listeners=listeners.filter(x=>x!==fn);},demoAction:async request=>{sent.push(request);state={...state,status:'running',reviewChatActive:true,messages:[{id:'u1',role:'user',text:request.text},{id:'a1',role:'assistant',kind:'progress',text:'Inspecting the button styles.'}]};for(const fn of listeners)fn(state);return {ok:true,state};},clearDemoChat:async()=>({ok:true,state:{...state,messages:[]}}),getDemoHistory:async()=>({messages:[],before:null}),openDemoSessionFile:async()=>({ok:true})};
+ });
+ for(const file of ['../../../robos-ui/agent-chat.css','../../../pr-review/renderer/review-chat.css'])await p.addStyleTag({path:path.resolve(__dirname,file)});
+ for(const file of ['../../../robos-ui/chat-composer.js','../../../robos-ui/agent-chat.js','../../../pr-review/renderer/review-chat.js','../../../pr-review/renderer/demo-ui.js'])await p.addScriptTag({path:path.resolve(__dirname,file)});
+ await p.evaluate(()=>window.mountWalkthrough());
+ assert.equal(await p.locator('#stage-6 robos-ai-textarea').count(),0);assert.equal(await p.locator('#stage-6 [role=log]').count(),0);assert.equal(await p.locator('#review-agent-panel').isVisible(),false);
+ await p.getByRole('button',{name:'Suggest Changes',exact:true}).click();await p.getByRole('textbox',{name:'Message the review agent'}).fill('Make the button clearer');await p.getByRole('button',{name:'Send',exact:true}).click();
+ assert.equal((await p.evaluate(()=>sent[0])).action,'suggest');assert.equal((await p.evaluate(()=>sent[0])).context.view,'stage-3');assert.match(await p.locator('.walkthrough-chat').innerText(),/Inspecting the button styles/);
+ await p.getByRole('textbox',{name:'Message the review agent'}).fill('Keep this draft');await p.evaluate(()=>{document.querySelector('#stage-3').classList.remove('active');document.querySelector('#stage-6').classList.add('active');});
+ const divider=p.getByRole('separator');await divider.focus();const before=Number(await divider.getAttribute('aria-valuenow'));await p.keyboard.press('ArrowLeft');assert.equal(Number(await divider.getAttribute('aria-valuenow')),before+2);
+ const box=await divider.boundingBox();await p.mouse.move(box.x+4,box.y+100);await p.mouse.down();await p.mouse.move(box.x-70,box.y+100);await p.mouse.up();assert.ok(Number(await divider.getAttribute('aria-valuenow'))>before+2);
+ await p.getByRole('button',{name:'Close suggestions'}).click();await p.getByRole('button',{name:'Suggest Changes',exact:true}).click();assert.equal(await p.getByRole('textbox',{name:'Message the review agent'}).inputValue(),'Keep this draft');
+ await p.evaluate(()=>window.mountWalkthrough());assert.equal(await p.locator('.robos-agent-chat').count(),1);assert.equal(await p.locator('#stage-6 .walkthrough-chat').count(),0);
+ console.log('PASS: one extracted chat, no discussion in Walkthrough, suggestions before Start, streamed bubbles, persistent draft and resizable split.');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});

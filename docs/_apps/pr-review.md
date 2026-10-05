@@ -77,3 +77,20 @@ has its own window, so selecting another task does not focus the wrong review.
 
 The review's **×** returns to **Open a task**. You can reopen that task or select
 another one; closing the review view does not discard its saved evidence.
+
+## Suggest changes while reviewing
+
+**Suggest Changes** opens the agent conversation beside the review viewer.
+Drag the divider to resize the two panels, or focus it and use the arrow keys.
+The conversation stays open as you move between Changes, Evidence, and
+Walkthrough. Closing the panel keeps its messages and unsent draft.
+
+The conversation uses the shared `robos-ui/agent-chat.js` view and AI textarea.
+It retains streamed messages, steering, follow-latest, saved history, and clear
+chat. You can ask questions or request changes before starting the walkthrough;
+those requests do not advance its checkpoints. The agent receives the active
+review tab and selected text as context. Changes remain on the local branch.
+
+Walkthrough contains launch instructions, controls, and the current checkpoint.
+Its conversation is in the side panel. **Explain this step** opens that panel
+for the agent's answer.

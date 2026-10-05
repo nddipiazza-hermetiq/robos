@@ -146,3 +146,18 @@ test('runner exceptions also open correction questions without completing the st
  const hook=attach({session:s,source:'test',kind:'walkthrough',store,show:id=>shown.push(id),notify:()=>({}),resume:()=>{}});
  try{await s.act('start');assert.equal(shown.length,1);assert.equal(s.index,-1);assert.equal(s.status,'error');}finally{hook.stop();}
 });
+test('suggestions work before walkthrough start and never mark a checkpoint complete',async()=>{
+ const prompts=[];const s=session(async prompt=>{prompts.push(prompt);return {reply:'Updated the requested label',checkpointReached:true,questions:[]};});
+ await s.suggestChanges('Rename the label',{view:'stage-3',selection:'Old label'});
+ assert.equal(s.index,-1);assert.equal(s.status,'idle');assert.equal(s.guidance,'');assert.match(prompts[0],/Do not start or advance/);assert.match(prompts[0],/stage-3/);assert.equal(s.messages.at(-1).text,'Updated the requested label');
+ await s.act('start');const guidance=s.guidance;await s.suggestChanges('Change another label',{view:'stage-5'});assert.equal(s.index,0);assert.equal(s.status,'paused');assert.equal(s.guidance,guidance);
+});
+test('suggestion failures leave walkthrough progress untouched and expose a chat blocker',async()=>{
+ const s=session(async()=>{throw Error('Missing local dependency');});await s.suggestChanges('Fix the button');assert.equal(s.index,-1);assert.equal(s.status,'idle');assert.match(s.state().reviewChatError,/dependency/);assert.equal(s.state().reviewChatActive,false);
+});
+test('review suggestion failure opens correction questions without failing a walkthrough step',async()=>{
+ const {AgentQuestions}=require('../../../robos-lib/agent-questions');const {attach}=require('../../../pr-review/lib/agent-questionnaire');
+ const store=new AgentQuestions(fs.mkdtempSync(path.join(os.tmpdir(),'review-chat-questions-')));const s=session(async()=>{throw Error('Cannot access the local app');});let opened=0;
+ const hook=attach({session:s,source:'/local/review.json',kind:'walkthrough',store,show:()=>opened++,notify:()=>null,resume:text=>s.suggestChanges(text)});
+ try{await s.suggestChanges('Fix the layout');assert.equal(opened,1);assert.equal(s.index,-1);assert.equal(s.status,'idle');}finally{hook.stop();}
+});

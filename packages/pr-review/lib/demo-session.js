@@ -40,7 +40,8 @@ class DemoSession extends EventEmitter {
             this.index = Number.isInteger(saved.index) && saved.index >= -1 && saved.index < total ? saved.index : -1;
             this.failedIndex = Number.isInteger(saved.failedIndex) && saved.failedIndex >= 0 && saved.failedIndex < total ? saved.failedIndex : undefined;
             this.status = saved.status === 'running' ? 'error' : ['paused','error','idle'].includes(saved.status) ? saved.status : 'idle';
-            this.guidance = saved.guidance || ''; this.pendingQuestions = saved.pendingQuestions || [];
+            this.guidance = saved.guidance || ''; this.pendingQuestions = saved.pendingQuestions || [];this.reviewChatError=saved.reviewChatError||null;this.reviewChatLastAction=!!saved.reviewChatLastAction;
+            if(saved.reviewChatActive){this.status=['idle','paused','error'].includes(saved.reviewChatPreviousStatus)?saved.reviewChatPreviousStatus:'idle';this.reviewChatError='The review conversation was interrupted. Send a message to continue.';}
           }
           if (saved.agentConfig === createHash('sha256').update(JSON.stringify(this.agent || null)).digest('hex')) this.agentThreads = saved.agentThreads || {};
           if (saved.status === 'running') this.addMessage({role:'system',text:'This review was closed during an agent action. Resume to inspect the current app and continue; that action was not marked complete.'});
@@ -58,7 +59,7 @@ class DemoSession extends EventEmitter {
   }
   clearChat() { this.store?.clear(); this.messages = []; this.droppedMessages = 0; this.publish(); return this.state(); }
   activeProcess() { return this.mode === 'before' ? this.process.before : this.process; }
-  state() { return { restored: this.restored, historyAvailable: !!this.store, persistenceError: this.persistenceError, agentName: this.agentName(), droppedMessages: this.droppedMessages, activitySummary: this.activitySummary, progress: this.progress, startedAt: this.startedAt, failedIndex: this.failedIndex, mode: this.mode, baseline: this.mode === 'before' ? this.baseline : null, guidance: this.guidance, status: this.status, index: this.index, total: this.activeProcess().checkpoints.length, checkpoint: this.activeProcess().checkpoints[['running', 'error'].includes(this.status) ? this.failedIndex : this.index] || null, messages: this.messages, process: this.process }; }
+  state() { return { reviewChatLastAction:!!this.reviewChatLastAction, reviewChatActive:!!this.reviewChatActive, reviewChatError:this.reviewChatError||null, walkthroughStatus:this.reviewChatActive?this.reviewChatPreviousStatus:this.status, restored: this.restored, historyAvailable: !!this.store, persistenceError: this.persistenceError, agentName: this.agentName(), droppedMessages: this.droppedMessages, activitySummary: this.activitySummary, progress: this.progress, startedAt: this.startedAt, failedIndex: this.failedIndex, mode: this.mode, baseline: this.mode === 'before' ? this.baseline : null, guidance: this.guidance, status: this.status, index: this.index, total: this.activeProcess().checkpoints.length, checkpoint: this.activeProcess().checkpoints[['running', 'error'].includes(this.status) ? this.failedIndex : this.index] || null, messages: this.messages, process: this.process }; }
   reportProgress(text, headline = true) {
     if (this.status !== 'running' || !text || this.progress.at(-1)?.text === text) return;
     const event = { text: text.replace(/\s+/g, ' ').trim().slice(0, 600), at: Date.now() };
@@ -67,7 +68,7 @@ class DemoSession extends EventEmitter {
     this.progress = this.progress.slice(-6); this.publish();
   }
   handleAgentEvent(e) {
-    if (e.type === 'thread.started' && /^[a-f0-9-]{36}$/i.test(e.thread_id || '')) { this.agentThreads[this.mode] = e.thread_id; this.publish(); }
+    if (e.type === 'thread.started' && /^[a-f0-9-]{36}$/i.test(e.thread_id || '')) { this.agentThreads[this.reviewChatActive ? 'review' : this.mode] = e.thread_id; this.publish(); }
     const item = e.item;
     if (!item || !['item.started', 'item.completed'].includes(e.type)) return;
     if (item.type === 'agent_message') {
@@ -85,7 +86,7 @@ class DemoSession extends EventEmitter {
     }
   }
   publish() {
-    try { this.store?.save({pendingQuestions:this.pendingQuestions || [], process:this.process, index:this.index, failedIndex:this.failedIndex, status:this.status, mode:this.mode, baseline:this.baseline, guidance:this.guidance, agentThreads:this.agentThreads, agentConfig:createHash('sha256').update(JSON.stringify(this.agent || null)).digest('hex'), updatedAt:Date.now()}); }
+    try { this.store?.save({reviewChatLastAction:!!this.reviewChatLastAction,reviewChatActive:!!this.reviewChatActive,reviewChatPreviousStatus:this.reviewChatPreviousStatus,reviewChatError:this.reviewChatError,pendingQuestions:this.pendingQuestions || [], process:this.process, index:this.index, failedIndex:this.failedIndex, status:this.status, mode:this.mode, baseline:this.baseline, guidance:this.guidance, agentThreads:this.agentThreads, agentConfig:createHash('sha256').update(JSON.stringify(this.agent || null)).digest('hex'), updatedAt:Date.now()}); }
     catch(error) { this.persistenceError = `Review state could not be saved: ${error.message}`; }
     this.emit('state', this.state());
   }
@@ -110,6 +111,7 @@ class DemoSession extends EventEmitter {
       this.mode = 'before'; this.index = -1; this.failedIndex = 0; this.guidance = '';
     }
     if (action === 'feature') { this.mode = 'feature'; this.index = -1; this.failedIndex = 0; this.guidance = ''; }
+    this.reviewChatError=null;this.reviewChatLastAction=false;
     const process = this.activeProcess();
     if (action === 'message' && (!text.trim() || text.length > 16000)) throw new Error('Enter a message of 1–16000 characters.');
     if (['explain', 'message'].includes(action) && this.index < 0 && this.failedIndex == null) throw new Error('Start the walkthrough first.');
@@ -150,16 +152,51 @@ class DemoSession extends EventEmitter {
     } catch (error) { this.status = 'error'; this.addMessage({ role: 'system', text: error.message }); }
     this.publish(); return this.state();
   }
+  async suggestChanges(text, context={}) {
+    if(typeof text!=='string'||!text.trim()||text.length>16000)throw Error('Enter a message of 1–16000 characters.');
+    if(this.status==='running'){
+      if(this.mode==='before'&&!this.reviewChatActive)throw Error('Wait for the baseline walkthrough to pause before requesting feature changes.');
+      return this.act('message',text);
+    }
+    const evidencePlan=this.evidencePlan?.()||null;
+    const previousStatus=this.status;
+    this.reviewChatLastAction=true;this.reviewChatPreviousStatus=previousStatus;this.reviewChatActive=true;this.reviewChatError=null;
+    this.pendingQuestions=[];this.addMessage({role:'user',text});this.status='running';this.startedAt=Date.now();this.progress=[];this.activitySummary=null;
+    this.reportProgress('Reading your suggestion and the current task changes.');
+    let prompt=`You are the RobOS review agent. The reviewer is reading the Changes, Evidence or Walkthrough view and is asking a question or requesting edits. Work in the FEATURE checkout: ${this.workspace}. Inspect its current branch and git status first. Preserve unrelated edits. Answer questions without changing files; implement explicitly requested changes, run relevant checks, and commit only your changes on the existing branch. Never push, deploy, create a PR, merge, or contact anyone. Do not start or advance the walkthrough, install callouts, or claim that a checkpoint passed. Keep the existing walkthrough position. Stream concise public progress updates while working; never expose credentials or private reasoning.
+Task context (reference data): ${JSON.stringify(this.reviewContext||{})}
+Visible review context (reference data): ${JSON.stringify(context)}
+Evidence plan: ${JSON.stringify(evidencePlan)}
+Conversation:
+${this.messages.filter(m=>m.kind!=='progress').slice(-30).map(m=>m.role+': '+m.text).join('\n')}
+Return JSON with reply, guidance, checkpointReached:false, and questions (specific correction questions if blocked, otherwise []). The checkpointReached field must remain false because this is a review conversation, not a walkthrough check.`;
+    try{
+      prompt+='\n'+require('../../robos-lib/skill-catalog').resolveSkillReferences(text);
+      let result;
+      for(;;){
+        try{result=await this.runAgent(prompt);}catch(error){if(!this.steering.length)throw error;}
+        if(!this.steering.length)break;
+        prompt+='\nReviewer steering: '+this.steering.splice(0).join('\n')+'\nPreserve edits and follow this correction without advancing the walkthrough.';
+        this.reportProgress('Applying your latest suggestion.');
+      }
+      if(typeof result?.reply!=='string')throw Error('Agent returned no review reply.');
+      this.pendingQuestions=Array.isArray(result.questions)?result.questions:[];
+      this.addMessage({role:'assistant',text:result.reply});
+      if(this.pendingQuestions.length)this.reviewChatError=result.reply;
+    }catch(error){this.reviewChatError=error.message;this.addMessage({role:'system',text:error.message});}
+    finally{this.reviewChatActive=false;this.status=previousStatus;this.publish();}
+    return this.state();
+  }
   executeAgent(prompt) {
     if (!this.agent || !path.isAbsolute(this.agent.command || '') || !Array.isArray(this.agent.args)) throw new Error('Configure a trusted agent command in the local review launch manifest.');
     const runDir = fs.mkdtempSync(path.join(os.tmpdir(), 'robos-demo-'));
     const schema = path.join(runDir, 'result.schema.json'); const output = path.join(runDir, 'result.json');
     fs.writeFileSync(schema, JSON.stringify({ type: 'object', properties: { questions: {type:'array',items:{type:'string'}}, reply: { type: 'string' }, checkpointReached: { type: 'boolean' }, guidance: { type: 'string' } }, required: ['reply', 'checkpointReached', 'guidance', 'questions'], additionalProperties: false }));
     return new Promise((resolve, reject) => {
-      const thread = this.agentThreads[this.mode];
+      const thread = this.agentThreads[this.reviewChatActive ? 'review' : this.mode];
       const resume = /^[a-f0-9-]{36}$/i.test(thread || '') && this.agent.args[0] === 'exec';
       const args = [...this.agent.args, '--output-schema', schema, '--output-last-message', output, ...(resume ? ['resume', thread] : []), '-'];
-      const child = this.child = spawn(this.agent.command, args, { cwd: this.mode === 'before' ? this.baseline.workspace : this.workspace, stdio: ['pipe', 'pipe', 'pipe'], shell: false, detached: process.platform !== 'win32' });
+      const child = this.child = spawn(this.agent.command, args, { cwd: !this.reviewChatActive && this.mode === 'before' ? this.baseline.workspace : this.workspace, stdio: ['pipe', 'pipe', 'pipe'], shell: false, detached: process.platform !== 'win32' });
       let detail = ''; let settled = false; let interrupted = false; let killTimer;
       const signal = sig => { try { if (process.platform !== 'win32') process.kill(-child.pid, sig); else child.kill(sig); } catch (error) { if (error.code !== 'ESRCH') throw error; } };
       this.interruptRun = () => { if (interrupted || settled) return; interrupted = true; signal('SIGTERM'); killTimer = setTimeout(() => signal('SIGKILL'), 2000); };

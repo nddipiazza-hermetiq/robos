@@ -42,7 +42,7 @@ ipcMain.handle('generate-review-evidence',async()=>{try{
 evidenceRunner?.on('state',state=>{for(const window of BrowserWindow.getAllWindows())window.webContents.send('review-evidence-run-state',state);});
 const { DemoSession } = require('./lib/demo-session');
 const demoSession = localReview?.demoProcess ? new DemoSession({ workspace: localReview.workspace, processFile: localReview.demoProcess, agent: localReview.demoAgent, beforeWorkspace: localReview.beforeWorkspace, store: reviewStore }) : null;
-if(demoSession)demoSession.evidencePlan=()=>evidencePlanner.get();
+if(demoSession){demoSession.evidencePlan=()=>evidencePlanner.get();demoSession.reviewContext={title:localReview.title,task:localReview.task,base:localReview.base,head:localReview.head,files:localReview.changedFiles};}
 // Optional workstation snapshot for restarting the theater without losing a paused review.
 if (demoSession && localReview.resumeStatePath) {
   const saved = JSON.parse(fs.readFileSync(localReview.resumeStatePath, 'utf8'));
@@ -61,7 +61,7 @@ const questionHook = demoSession ? require('./lib/agent-questionnaire').attach({
   resume: async text => {
     if (reviewPublisher?.pending || prState?.pending || evidenceRunner?.busy) throw Error('A PR update is in progress.');
     if (localReview.pullRequest) await prState.assertAuthor();
-    return demoSession.act('message', text);
+    return demoSession.reviewChatError?demoSession.suggestChanges(text):demoSession.act('message', text);
   },
   show: id => { if (app.isReady()) questionnaire.open(id); else app.once('ready', () => questionnaire.open(id)); },
   notify: item => questionnaire.notify(item)
@@ -78,7 +78,7 @@ app.on('before-quit',()=>{evidenceQuestions?.stop();evidenceRunner?.stop();});
 
 demoSession?.on('state', state => { if (win && !win.isDestroyed()) win.webContents.send('demo-state', state); });
 ipcMain.handle('demo-state', () => demoSession?.state() || null);
-ipcMain.handle('demo-action', async (_, { action, text } = {}) => { try { if (!demoSession) throw new Error('No project demo process configured.'); if (reviewPublisher?.pending || prState?.pending || evidenceRunner?.busy) throw new Error('A PR update is in progress.');if(localReview?.pullRequest && action!=='explain')await prState.assertAuthor(); return { ok: true, state: await demoSession.act(action, text) }; } catch (e) { return { ok: false, error: e.message }; } });
+ipcMain.handle('demo-action', async (_, { action, text, context } = {}) => { try { if (!demoSession) throw new Error('No project demo process configured.'); if (reviewPublisher?.pending || prState?.pending || evidenceRunner?.busy) throw new Error('A PR update is in progress.');if(localReview?.pullRequest && action!=='explain')await prState.assertAuthor(); return { ok: true, state: action==='suggest'?await demoSession.suggestChanges(text,{view:String(context?.view||'review').slice(0,80),file:String(context?.file||'').slice(0,1000),selection:String(context?.selection||'').slice(0,4000)}):await demoSession.act(action, text) }; } catch (e) { return { ok: false, error: e.message }; } });
 ipcMain.handle('demo-open-session-file', async () => { try { await require('./lib/open-session-file').openSessionFile(reviewStore?.transcript, shell); return { ok: true }; } catch (error) { return { ok: false, error: error.message }; } });
 ipcMain.handle('demo-history', (_, before) => reviewStore?.page(before, {includeCleared:true}) || {messages:[],before:0});
 ipcMain.handle('demo-clear-chat', () => { if (!demoSession) return { ok: false, error: 'No walkthrough configured.' }; return { ok: true, state: demoSession.clearChat() }; });
