@@ -218,11 +218,11 @@ Return JSON with reply, guidance, checkpointReached:false, and questions (specif
       this.interruptRun = () => { if (interrupted || settled) return; interrupted = true; signal('SIGTERM'); killTimer = setTimeout(() => signal('SIGKILL'), 2000); };
 
       const finish = (error, result) => { if (settled) return; settled = true; clearTimeout(timer); clearTimeout(killTimer); this.interruptRun = null; this.child = null; error ? reject(error) : resolve(result); };
-      const timer = setTimeout(() => { child.kill('SIGTERM'); finish(new Error('Agent action timed out. The checkpoint was not advanced.')); }, this.agent.timeoutMs || 600000);
+      const timer = setTimeout(() => { signal('SIGKILL'); finish(new Error('Agent action timed out after no activity. The checkpoint was not advanced.')); }, this.agent.timeoutMs || 600000);
       child.stdin.on('error', () => {});
       const lines = readline.createInterface({ input: child.stdout });
       lines.on('line', line => {
-        try { const e = JSON.parse(line); this.handleAgentEvent(e); } catch {}
+        try { const e = JSON.parse(line); timer.refresh(); this.handleAgentEvent(e); } catch {}
       });
       child.stderr.on('data', chunk => { detail = (detail + chunk).slice(-2000); });
       child.on('error', error => finish(error));

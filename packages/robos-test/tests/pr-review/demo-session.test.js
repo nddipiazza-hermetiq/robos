@@ -161,3 +161,8 @@ test('review suggestion failure opens correction questions without failing a wal
  const hook=attach({session:s,source:'/local/review.json',kind:'walkthrough',store,show:()=>opened++,notify:()=>null,resume:text=>s.suggestChanges(text)});
  try{await s.suggestChanges('Fix the layout');assert.equal(opened,1);assert.equal(s.index,-1);assert.equal(s.status,'idle');}finally{hook.stop();}
 });
+
+test('agent progress refreshes the inactivity timeout',async()=>{
+ const s=session();s.agent={command:process.execPath,args:['-e',`const fs=require('node:fs');const a=process.argv;const out=a[a.indexOf('--output-last-message')+1];process.stdin.resume();process.stdin.on('end',()=>{let n=0;const tick=setInterval(()=>{console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Still checking '+(++n)}}));if(n===6){clearInterval(tick);fs.writeFileSync(out,JSON.stringify({reply:'Done',checkpointReached:true,guidance:'Checked',questions:[]}));}},60);});`,'--'],timeoutMs:200};
+ await s.act('start');assert.equal(s.index,0);assert.notEqual(s.status,'error');
+});
