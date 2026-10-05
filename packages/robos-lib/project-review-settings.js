@@ -15,6 +15,8 @@ function file(repo, root = path.join(os.homedir(), '.robos', 'project-review-set
 }
 function read(repo, root) {
   let value = {}; try { value = JSON.parse(fs.readFileSync(file(repo, root), 'utf8')); } catch(e) { if(e.code !== 'ENOENT') throw e; }
+  // Migrate the former built-in template only; keep custom validation instructions.
+  if(value.prTemplate?.trim()==='## Changes\n\n{{description}}\n\n## Validation')value.prTemplate=DEFAULT_PR;
   return { prTemplate: DEFAULT_PR, messageTemplate: DEFAULT_MESSAGE, serverId: '', channel: '', reviewers: [], githubReviewers: [], ...value };
 }
 function save(repo, input, root) {
