@@ -227,7 +227,20 @@ ipcMain.handle('reset-agent-personas', () => {
   return { ok: false, error: 'agent-personas library not available' };
 });
 
-ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, customPrompt, customDirectives }) => {
+const questionWindow=require('../robos-lib/agent-question-window');questionWindow.register();
+const questionStore=new (require('../robos-lib/agent-questions').AgentQuestions)();
+const pendingCorrections=new Map();
+const correctionTimer=setInterval(()=>{
+ for(const [id,job] of pendingCorrections){
+  const item=questionStore.read(id);if(item.status!=='answered'||activeAgents.has(job.taskKey))continue;
+  pendingCorrections.delete(id);
+  const answers=item.questions.map(q=>q.prompt+'\n'+item.answers[q.id]).join('\n');
+  questionStore.save({...item,status:'resolved',resolvedAt:Date.now()});
+  startImplementation(null,{...job,customPrompt:undefined,extraContext:(job.extraContext||'')+'\nPrevious result:\n'+item.context+'\nReviewer corrections:\n'+answers});
+ }
+},2000);correctionTimer.unref();
+ipcMain.handle('start-agent',startImplementation);
+function startImplementation(event, { taskKey, task, extraContext, persona, customPrompt, customDirectives }) {
   if (activeAgents.has(taskKey)) {
     return { ok: false, error: 'Agent already running for this task' };
   }
@@ -251,6 +264,7 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
   prompt += '\n\nDEFAULT ROBOS DELIVERY WORKFLOW:\nCreate a feature branch (use the requested branch, otherwise codex/<task-key>). Implement and test the task, commit the task changes, and push that branch to origin. Do not create a pull request, including a draft PR. Report the workspace path, repository, branch, base branch, validation and evidence locations. The developer may optionally review Changes, Evidence and Walkthrough locally and then explicitly click Create PR when ready. Never make PR creation an automatic completion step.';
 
   prompt += require('../robos-lib/task-evidence').implementationInstructions(task);
+  prompt += '\nIf blocked, end with a ## Questions section containing numbered, specific questions. Do not say implementation is complete when required checks remain blocked. RobOS opens those questions for the reviewer.';
 
   // Determine display and execution environment based on persona execution mode
   const isEphemeralGui = effectivePersona?.executionMode === 'ephemeral-gui' || effectivePersona?.slug === 'non-headless-dev';
@@ -276,7 +290,7 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
   activeAgents.set(taskKey, child);
 
   let stdoutBuf = '';
-  let lastAssistantText = '';
+  let lastAssistantText = '',resultText='';let questions=[];
   child.stdout.on('data', d => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
     stdoutBuf += d.toString();
@@ -293,10 +307,12 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
             .filter(b => b.type === 'text')
             .map(b => b.text)
             .join('');
+          if(text)lastAssistantText=text;
         } else if (obj.type === 'text') {
           text = obj.text;
           if(text)lastAssistantText=text;
         } else if (obj.type === 'result') {
+          resultText=obj.result||'';questions=require('./lib/result-questions').resultQuestions(obj);
           text = obj.result === lastAssistantText ? '' : obj.result || '';
         } else {
           continue; // skip tool_use, tool_result, etc.
@@ -316,13 +332,17 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
   });
   child.on('close', code => {
     activeAgents.delete(taskKey);
+    if(questions.length){
+      const {item}=questionStore.create({source:'task-implementer:'+String(task.url||taskKey),kind:'implementation',eventId:require('node:crypto').randomUUID(),context:resultText,questions,agentName:'Task Implementer'});
+      pendingCorrections.set(item.id,{taskKey,task,extraContext,persona,customDirectives});questionWindow.open(item.id);
+    }
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('agent-done', { taskKey, code });
+      mainWindow.webContents.send('agent-done', { taskKey, code, needsAttention:questions.length>0 });
     }
   });
 
   return { ok: true };
-});
+}
 
 ipcMain.handle('open-local-review', async (_, task) => {
   if (activeAgents.has(task?.key || task?.id)) return {ok:false,error:'Wait for Task Implementer to finish before reviewing its branch.'};

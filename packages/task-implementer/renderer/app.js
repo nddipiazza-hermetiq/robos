@@ -412,10 +412,11 @@ function setupAgentListeners() {
       if(agentRunning)setAgentStatus('Agent running · latest update '+new Date().toLocaleTimeString(),'running');
     }
   });
-  window.robos.onAgentDone(({ taskKey, code }) => {
+  window.robos.onAgentDone(({ taskKey, code, needsAttention }) => {
     agentRunning = false;
     setAgentBusy(false);
-    if (code === 0) {
+    if(needsAttention){setAgentStatus('Waiting for answers in the correction questionnaire.','done-err');
+    } else if (code === 0) {
       setAgentStatus('Agent finished successfully.', 'done-ok');
     } else {
       setAgentStatus(`Agent exited with code ${code}.`, 'done-err');
