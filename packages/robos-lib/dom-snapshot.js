@@ -176,10 +176,8 @@ const FILL_SCRIPT = (selector, value) => `
   const el = document.querySelector(${JSON.stringify(selector)});
   if (!el) return { ok: false, error: 'No element matched: ' + ${JSON.stringify(selector)} };
   el.focus && el.focus();
-  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-    el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype,
-    'value'
-  );
+  const nativePrototype = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : el.tagName === 'INPUT' ? window.HTMLInputElement.prototype : null;
+  const nativeInputValueSetter = nativePrototype && Object.getOwnPropertyDescriptor(nativePrototype, 'value');
   if (nativeInputValueSetter) {
     nativeInputValueSetter.set.call(el, ${JSON.stringify(value)});
   } else if (el.isContentEditable) {

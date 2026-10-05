@@ -102,7 +102,7 @@ ipcMain.handle('get-server-info', () => {
       id: server.id,
       type: server.type,
       name: server.name,
-      repo: server.type === 'github' ? `${server.gh_org || ''}/${server.gh_repo || ''}` : null,
+      repo: server.type === 'github' ? require('./lib/github-tasks').repositories(server).join(', ') : null,
       jiraUrl: server.type === 'jira' ? server.url : null,
       jiraProject: server.type === 'jira' ? server.jira_project : null,
     },
@@ -115,30 +115,7 @@ ipcMain.handle('list-tasks', async (_, { filter } = {}) => {
 
   if (server.type === 'github') {
     try {
-      const repo = `${server.gh_org}/${server.gh_repo}`;
-      let args = ['issue', 'list', '--repo', repo,
-        '--limit', '50', '--state', filter?.state || 'open',
-        '--json', 'number,title,state,labels,assignees,createdAt,updatedAt,body'];
-      if (filter?.assignee) args.push('--assignee', filter.assignee);
-      if (filter?.label)    args.push('--label', filter.label);
-      const r = cp.spawnSync('gh', args, { encoding: 'utf8', timeout: 15000 });
-      if (r.status !== 0) return { ok: false, error: r.stderr || 'gh failed' };
-      const issues = JSON.parse(r.stdout);
-      return {
-        ok: true,
-        tasks: issues.map(i => ({
-          key: `#${i.number}`,
-          number: i.number,
-          title: i.title,
-          body: i.body || '',
-          status: i.state,
-          labels: (i.labels || []).map(l => typeof l === 'string' ? l : l.name),
-          assignee: i.assignees?.[0]?.login || null,
-          updated: i.updatedAt,
-          repo,
-          url: `https://github.com/${repo}/issues/${i.number}`,
-        })),
-      };
+      return {ok:true,tasks:await require('./lib/github-tasks').list(server,filter)};
     } catch (e) {
       return { ok: false, error: e.message };
     }
@@ -295,6 +272,7 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
     '--dangerously-skip-permissions',
   ], { encoding: 'utf8', env: childEnv });
 
+  child.stdin.end(); // The prompt is an argument; no piped input follows.
   activeAgents.set(taskKey, child);
 
   let stdoutBuf = '';
