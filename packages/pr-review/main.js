@@ -13,15 +13,16 @@ ipcMain.handle('review-ides',()=>({ok:true,workspace:localReview?.workspace||'',
 ipcMain.handle('review-open-ide',async(_,id)=>{try{return await require('./lib/open-review-ide').open(localReview?.workspace,id);}catch(e){return {ok:false,error:e.message};}});
 const { ReviewPRPublisher } = require('./lib/create-review-pr');
 const reviewPublisher = localReview ? new ReviewPRPublisher(localReview, process.env.ROBOS_LOCAL_REVIEW) : null;
-ipcMain.handle('create-review-pr', async (_, input) => { try { if (!reviewPublisher) throw new Error('No local review is open.'); if (demoSession?.status === 'running') throw new Error('Wait for the current edit to finish before creating the PR.'); const evidence=await require('./lib/publish-inline-evidence').publishInlineEvidence(input.body,localReview,reviewStore,require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence,{progress:text=>{for(const window of BrowserWindow.getAllWindows())window.webContents.send('review-publish-progress',text);}}); return {ok:true,pr:await reviewPublisher.create({...input,body:require('./lib/inline-evidence').resolveEvidence(input.body,evidence)})}; } catch(error) { return {ok:false,error:error.message}; } });
+ipcMain.handle('create-review-pr', async (_, input) => { try { if (!reviewPublisher) throw new Error('No local review is open.'); if (demoSession?.status === 'running' || evidenceRunner?.busy) throw new Error('Wait for the current edit to finish before creating the PR.'); const evidence=await require('./lib/publish-inline-evidence').publishInlineEvidence(input.body,localReview,reviewStore,require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence,{progress:text=>{for(const window of BrowserWindow.getAllWindows())window.webContents.send('review-publish-progress',text);}}); return {ok:true,pr:await reviewPublisher.create({...input,body:require('./lib/inline-evidence').resolveEvidence(input.body,evidence)})}; } catch(error) { return {ok:false,error:error.message}; } });
 const prState=localReview?new (require('./lib/review-pr-state').ReviewPRState)(localReview,process.env.ROBOS_LOCAL_REVIEW):null;
 ipcMain.handle('refresh-review-pr',async()=>{try{return {ok:true,pr:await prState.refresh()};}catch(e){return {ok:false,error:e.message};}});
-ipcMain.handle('ready-review-pr',async(_,head,url,reviewers)=>{try{if(!prState)return {ok:true,pr:await require('../dev-central/lib/pull-requests').ready(url,head,undefined,reviewers)};if(demoSession?.status==='running')throw Error('Wait for the walkthrough adjustment to finish.');return {ok:true,pr:await prState.ready(head,reviewers)};}catch(e){return {ok:false,error:e.message};}});
-ipcMain.handle('update-review-pr',async(_,input)=>{try{if(demoSession?.status==='running')throw Error('Wait for the walkthrough adjustment to finish.');await prState.assertAuthor();const evidence=await require('./lib/publish-inline-evidence').publishInlineEvidence(input.body,localReview,reviewStore,require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence);return {ok:true,pr:await prState.update({...input,body:require('./lib/inline-evidence').resolveEvidence(input.body,evidence)})};}catch(e){return {ok:false,error:e.message};}});
-ipcMain.handle('push-review-adjustments',async()=>{try{if(demoSession?.status==='running')throw Error('Wait for the walkthrough adjustment to finish.');return {ok:true,pr:await prState.push()};}catch(e){return {ok:false,error:e.message};}});
+ipcMain.handle('ready-review-pr',async(_,head,url,reviewers)=>{try{if(!prState)return {ok:true,pr:await require('../dev-central/lib/pull-requests').ready(url,head,undefined,reviewers)};if(demoSession?.status==='running'||evidenceRunner?.busy)throw Error('Wait for the walkthrough adjustment to finish.');return {ok:true,pr:await prState.ready(head,reviewers)};}catch(e){return {ok:false,error:e.message};}});
+ipcMain.handle('update-review-pr',async(_,input)=>{try{if(demoSession?.status==='running'||evidenceRunner?.busy)throw Error('Wait for the walkthrough adjustment to finish.');await prState.assertAuthor();const evidence=await require('./lib/publish-inline-evidence').publishInlineEvidence(input.body,localReview,reviewStore,require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence);return {ok:true,pr:await prState.update({...input,body:require('./lib/inline-evidence').resolveEvidence(input.body,evidence)})};}catch(e){return {ok:false,error:e.message};}});
+ipcMain.handle('push-review-adjustments',async()=>{try{if(demoSession?.status==='running'||evidenceRunner?.busy)throw Error('Wait for the walkthrough adjustment to finish.');return {ok:true,pr:await prState.push()};}catch(e){return {ok:false,error:e.message};}});
 const showMeSession = new ShowMeSession(localReview?.runner);
 const { ReviewSessionStore } = require('./lib/review-session-store');
 const reviewStore = localReview ? new ReviewSessionStore({repo:localReview.repo,number:localReview.number,branch:localReview.pr.headBranch,workspace:localReview.workspace}) : null;
+const evidenceRunner=localReview?new (require('./lib/evidence-runner').EvidenceRunner)(localReview,reviewStore):null;
 const evidencePlanner=localReview?new (require('./lib/evidence-plan').EvidencePlanner)(localReview,reviewStore):null;
 ipcMain.handle('open-review-evidence',async(_,id)=>{try{const item=require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence.find(e=>e.id===id);if(!item?.path)throw Error('No local artifact for this evidence entry.');const error=await shell.openPath(item.path);if(error)throw Error(error);return {ok:true};}catch(e){return {ok:false,error:e.message};}});
 ipcMain.handle('review-evidence-plan',async(_,recommend=false)=>{try{
@@ -29,6 +30,15 @@ ipcMain.handle('review-evidence-plan',async(_,recommend=false)=>{try{
  const plan=recommend?await evidencePlanner.recommend():evidencePlanner.get();
  return {ok:true,plan,inventory:require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence};
 }catch(e){return {ok:false,error:e.message};}});
+ipcMain.handle('review-evidence-run-state',()=>evidenceRunner?.state()||null);
+ipcMain.handle('generate-review-evidence',async()=>{try{
+ if(!evidenceRunner)throw Error('Open a local review first.');
+ if(demoSession?.status==='running'||reviewPublisher?.pending||prState?.pending)throw Error('Finish the current review action before generating evidence.');
+ if(localReview.pullRequest)await prState.assertAuthor();
+ const plan=evidencePlanner.get()||await evidencePlanner.recommend();
+ return {ok:true,state:evidenceRunner.start(plan)};
+}catch(e){return {ok:false,error:e.message};}});
+evidenceRunner?.on('state',state=>{for(const window of BrowserWindow.getAllWindows())window.webContents.send('review-evidence-run-state',state);});
 const { DemoSession } = require('./lib/demo-session');
 const demoSession = localReview?.demoProcess ? new DemoSession({ workspace: localReview.workspace, processFile: localReview.demoProcess, agent: localReview.demoAgent, beforeWorkspace: localReview.beforeWorkspace, store: reviewStore }) : null;
 if(demoSession)demoSession.evidencePlan=()=>evidencePlanner.get();
@@ -48,7 +58,7 @@ questionnaire.register();
 const questionHook = demoSession ? require('./lib/agent-questionnaire').attach({
   session: demoSession, source: process.env.ROBOS_LOCAL_REVIEW, kind: 'walkthrough',
   resume: async text => {
-    if (reviewPublisher?.pending || prState?.pending) throw Error('A PR update is in progress.');
+    if (reviewPublisher?.pending || prState?.pending || evidenceRunner?.busy) throw Error('A PR update is in progress.');
     if (localReview.pullRequest) await prState.assertAuthor();
     return demoSession.act('message', text);
   },
@@ -57,9 +67,17 @@ const questionHook = demoSession ? require('./lib/agent-questionnaire').attach({
 }) : null;
 app.on('before-quit', () => questionHook?.stop());
 app.whenReady().then(() => questionHook?.observeCurrent());
+const evidenceQuestions=evidenceRunner?require('./lib/agent-questionnaire').attach({session:evidenceRunner,source:process.env.ROBOS_LOCAL_REVIEW,kind:'evidence',resume:async text=>{
+ if(demoSession?.status==='running'||reviewPublisher?.pending||prState?.pending)throw Error('Finish the current review action first.');
+ if(localReview.pullRequest)await prState.assertAuthor();
+ return evidenceRunner.start(evidencePlanner.get(),text);
+},show:id=>{if(app.isReady())questionnaire.open(id);else app.once('ready',()=>questionnaire.open(id));},notify:item=>questionnaire.notify(item)}):null;
+app.whenReady().then(()=>evidenceQuestions?.observeCurrent());
+app.on('before-quit',()=>{evidenceQuestions?.stop();evidenceRunner?.stop();});
+
 demoSession?.on('state', state => { if (win && !win.isDestroyed()) win.webContents.send('demo-state', state); });
 ipcMain.handle('demo-state', () => demoSession?.state() || null);
-ipcMain.handle('demo-action', async (_, { action, text } = {}) => { try { if (!demoSession) throw new Error('No project demo process configured.'); if (reviewPublisher?.pending || prState?.pending) throw new Error('A PR update is in progress.');if(localReview?.pullRequest && action!=='explain')await prState.assertAuthor(); return { ok: true, state: await demoSession.act(action, text) }; } catch (e) { return { ok: false, error: e.message }; } });
+ipcMain.handle('demo-action', async (_, { action, text } = {}) => { try { if (!demoSession) throw new Error('No project demo process configured.'); if (reviewPublisher?.pending || prState?.pending || evidenceRunner?.busy) throw new Error('A PR update is in progress.');if(localReview?.pullRequest && action!=='explain')await prState.assertAuthor(); return { ok: true, state: await demoSession.act(action, text) }; } catch (e) { return { ok: false, error: e.message }; } });
 ipcMain.handle('demo-open-session-file', async () => { try { await require('./lib/open-session-file').openSessionFile(reviewStore?.transcript, shell); return { ok: true }; } catch (error) { return { ok: false, error: error.message }; } });
 ipcMain.handle('demo-history', (_, before) => reviewStore?.page(before, {includeCleared:true}) || {messages:[],before:0});
 ipcMain.handle('demo-clear-chat', () => { if (!demoSession) return { ok: false, error: 'No walkthrough configured.' }; return { ok: true, state: demoSession.clearChat() }; });
@@ -1326,7 +1344,7 @@ ipcMain.handle('review-message-send', async (_,input) => {try{let sender=notific
  }return {ok:true,notification:await sender.send(input)};}catch(e){return {ok:false,error:e.message};}});
 
 const descriptionGenerator = localReview ? new (require('./lib/pr-description').PRDescriptionGenerator)(localReview, reviewStore, text => {for(const window of BrowserWindow.getAllWindows())window.webContents.send('review-description-progress',text);}) : null;
-ipcMain.handle('generate-pr-description',async(_,input)=>{try{if(!descriptionGenerator)throw Error('No local review is open.');if(demoSession?.status==='running')throw Error('Wait for the current demo edit to finish before generating its description.');return {ok:true,...await descriptionGenerator.generate(input)};}catch(e){return {ok:false,error:e.message};}});
+ipcMain.handle('generate-pr-description',async(_,input)=>{try{if(!descriptionGenerator)throw Error('No local review is open.');if(demoSession?.status==='running'||evidenceRunner?.busy)throw Error('Wait for the current demo edit to finish before generating its description.');return {ok:true,...await descriptionGenerator.generate(input)};}catch(e){return {ok:false,error:e.message};}});
 
 app.on('before-quit',()=>descriptionGenerator?.stop());
 

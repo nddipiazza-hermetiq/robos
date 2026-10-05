@@ -2,7 +2,7 @@
 const {AgentQuestions}=require('../../robos-lib/agent-questions');
 function attach({session,source,kind,resume,show,notify,store=new AgentQuestions()}){
  let consuming=false;const notifications=new Map();
- function observe(state){if(state.status==='running'){for(const item of store.list().filter(q=>q.source===source&&q.kind===kind&&q.status==='pending')){store.save({...item,status:'superseded'});notifications.get(item.id)?.close?.();}return;}if(state.status!=='error')return;
+ function observe(state){if(state.status==='running'){for(const item of store.list().filter(q=>q.source===source&&q.kind===kind&&q.status==='pending')){store.save({...item,status:'superseded'});notifications.get(item.id)?.close?.();}return;}if(!['error','needs-attention'].includes(state.status))return;
   const questions=(session.pendingQuestions||[]).filter(q=>typeof q==='string'&&q.trim()&&!/what should (?:i|the agent) do next/i.test(q));
   if(!questions.length)questions.push('This checkpoint could not be verified. What correction should the agent apply before retrying this same step? Include a browser connection or app URL if that is the missing detail.');
   const message=state.messages.filter(m=>m.role!=='user'&&m.kind!=='progress').at(-1);if(!message)return;
