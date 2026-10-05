@@ -273,6 +273,8 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
 
   prompt += '\n\nDEFAULT ROBOS DELIVERY WORKFLOW:\nCreate a feature branch (use the requested branch, otherwise codex/<task-key>). Implement and test the task, commit the task changes, and push that branch to origin. Do not create a pull request, including a draft PR. Report the workspace path, repository, branch, base branch, validation and evidence locations. The developer may optionally review Changes, Evidence and Walkthrough locally and then explicitly click Create PR when ready. Never make PR creation an automatic completion step.';
 
+  prompt += require('../robos-lib/task-evidence').implementationInstructions(task);
+
   // Determine display and execution environment based on persona execution mode
   const isEphemeralGui = effectivePersona?.executionMode === 'ephemeral-gui' || effectivePersona?.slug === 'non-headless-dev';
   const targetDisplay = isEphemeralGui ? (process.env.ROBOS_XVFB_DISPLAY || ':99') : (process.env.DISPLAY || ':0');

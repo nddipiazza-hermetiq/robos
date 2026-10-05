@@ -22,8 +22,16 @@ ipcMain.handle('push-review-adjustments',async()=>{try{if(demoSession?.status===
 const showMeSession = new ShowMeSession(localReview?.runner);
 const { ReviewSessionStore } = require('./lib/review-session-store');
 const reviewStore = localReview ? new ReviewSessionStore({repo:localReview.repo,number:localReview.number,branch:localReview.pr.headBranch,workspace:localReview.workspace}) : null;
+const evidencePlanner=localReview?new (require('./lib/evidence-plan').EvidencePlanner)(localReview,reviewStore):null;
+ipcMain.handle('open-review-evidence',async(_,id)=>{try{const item=require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence.find(e=>e.id===id);if(!item?.path)throw Error('No local artifact for this evidence entry.');const error=await shell.openPath(item.path);if(error)throw Error(error);return {ok:true};}catch(e){return {ok:false,error:e.message};}});
+ipcMain.handle('review-evidence-plan',async(_,recommend=false)=>{try{
+ if(!evidencePlanner)throw Error('Open a local review to plan its evidence.');
+ const plan=recommend?await evidencePlanner.recommend():evidencePlanner.get();
+ return {ok:true,plan,inventory:require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence};
+}catch(e){return {ok:false,error:e.message};}});
 const { DemoSession } = require('./lib/demo-session');
 const demoSession = localReview?.demoProcess ? new DemoSession({ workspace: localReview.workspace, processFile: localReview.demoProcess, agent: localReview.demoAgent, beforeWorkspace: localReview.beforeWorkspace, store: reviewStore }) : null;
+if(demoSession)demoSession.evidencePlan=()=>evidencePlanner.get();
 // Optional workstation snapshot for restarting the theater without losing a paused review.
 if (demoSession && localReview.resumeStatePath) {
   const saved = JSON.parse(fs.readFileSync(localReview.resumeStatePath, 'utf8'));

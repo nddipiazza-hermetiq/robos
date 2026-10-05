@@ -1142,7 +1142,7 @@ function updateTheaterStepper() {
     { num: 2, key: 'stage2_livingDocs', label: 'Living Docs & Flow', done: gates.docsReviewed },
     { num: 3, key: 'stage3_fileDiffs', label: 'File Diff Viewer', done: gates.diffsInspected },
     { num: 4, key: 'stage4_ideBridge', label: 'IDE Branch Diffs', done: gates.ideDiffLaunched },
-    { num: 5, key: 'stage5_proofCanvas', label: 'Evidence Video', done: theaterContext.local ? false : true },
+    { num: 5, key: 'stage5_proofCanvas', label: 'Evidence', done: theaterContext.local ? false : true },
     { num: 6, key: 'stage6_showTheFix', label: 'Walk Me Through It', done: gates.fixDemonstrated },
     { num: 7, key: 'stage7_signOff', label: 'Sign-Off & Merge', done: false }
   ];
@@ -1193,6 +1193,7 @@ function updateTheaterStepper() {
 }
 
 window.setTheaterStage = function(stageNum) {
+  if(stageNum===5&&theaterContext?.local)window.mountEvidencePlan?.();
   if (theaterContext?.local && ![3, 5, 6, 8].includes(stageNum)) return;
   // If target stage is disabled in config, skip to next or previous available stage
   if (theaterContext && theaterContext.theaterConfig) {
@@ -1970,7 +1971,8 @@ function renderTheaterVideo() {
   if (theaterContext.local) {
     const container = document.getElementById('canvas-video-view');
     container.replaceChildren(); container.style.display = 'block';
-    const video = document.createElement('video'); video.controls = true; video.src = url || ''; video.style.width = '100%'; video.style.maxHeight = '65vh';
+    if(!url)return;
+    const video = document.createElement('video'); video.controls = true; video.src = url; video.style.width = '100%'; video.style.maxHeight = '65vh';
     const summary = document.createElement('p'); summary.textContent = vttTranscript;
     container.append(video, summary);
     return;

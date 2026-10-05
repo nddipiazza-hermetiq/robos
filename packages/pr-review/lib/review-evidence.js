@@ -21,7 +21,8 @@ function evidenceFor(review,store){
   // Keep every page available; the full transcript path is also supplied for long reviews.
   let cursor,reviewNotes=[],bytes=0;
   if(store?.page)do{const page=store.page(cursor,{includeCleared:true});const notes=page.messages.filter(m=>m.kind!=='progress').map(m=>({role:m.role,text:m.text,timestamp:m.timestamp}));reviewNotes=notes.concat(reviewNotes);bytes+=JSON.stringify(notes).length;if(!page.before||page.before===cursor)break;cursor=page.before;}while(bytes<200000);
-  return {evidence,reviewNotes,evidenceRoots:roots,evidenceIndexes:sources,inventoryWarnings:[...new Set(limits)],baseline:review.beforeWorkspace||null};
+  let evidencePlan=null;try{evidencePlan=require('./evidence-plan').readPlan(review,store);}catch(error){limits.push('Could not read the chosen evidence plan: '+error.message);}
+  return {evidencePlan,evidence,reviewNotes,evidenceRoots:roots,evidenceIndexes:sources,inventoryWarnings:[...new Set(limits)],baseline:review.beforeWorkspace||null};
 }
 function registerScreenshot(store,item){
   if(!store?.directory||!fs.existsSync(item.path))return;

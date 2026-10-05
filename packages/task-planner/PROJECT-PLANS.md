@@ -75,3 +75,9 @@ the CLI from that same checkout. Missing dependencies must fail visibly.
 
 For local RobOS skill development, `./plugins/install.sh --sync --skill NAME`
 updates just that skill's agent mirrors without refreshing unrelated skills.
+
+### Evidence chosen during planning
+
+Include an editable `## Evidence plan` section in each task description: the end user, scenario, exact prompt/action, baseline and dataset, proof method, expected result, artifacts, and limitations. The description survives saving and issue creation. Task Implementer follows that selection, or chooses evidence before implementation when older tasks have no plan. It writes `evidence-plan.json` and sets `evidencePlanPath` in the local review manifest.
+
+Code Review’s Evidence tab displays that plan. Without one, the configured review agent inspects the task, diff file list, and existing evidence to recommend suitable proof. Recommendations are saved separately from artifacts and do not mark anything verified. MCP changes generally use actual calls/responses and protocol checks; model-behavior changes also need real assistant exchanges. UI changes may use real product screenshots. Each M## finding gets a separate scenario.
