@@ -1,0 +1,58 @@
+[
+  {
+    "@id": "urn:robos:walkthrough-template:local-app:v1",
+    "@type": "robos:WalkthroughTemplate",
+    "dcterms:title": "Local app walkthrough",
+    "robos:version": 1,
+    "robos:webElement": "robos-walkthrough-checkpoints",
+    "robos:instructions": "Use the task implementation checkout. Inspect repository setup instructions and available browser tools. Preserve edits. Show actual observations, never invented results. Stop at each checkpoint for the reviewer. Ask a concrete correction question when blocked. Never push, deploy, publish a tunnel, or change production without explicit authorization.",
+    "robos:checkpoints": [
+      {
+        "title": "Start the app locally",
+        "given": "The implementation checkout is available.",
+        "when": "Start the required local services and app using repository instructions. Open its verified local URL.",
+        "then": "The reviewer can open the local app; show the URL and how to stop the services."
+      },
+      {
+        "title": "Try the changed behavior",
+        "given": "The local app is running.",
+        "when": "Follow the task acceptance criteria in the app with actual inputs.",
+        "then": "Show the observed outcome and any incomplete checks."
+      }
+    ]
+  },
+  {
+    "@id": "urn:robos:walkthrough-template:claude-connector:v1",
+    "@type": "robos:WalkthroughTemplate",
+    "dcterms:title": "Local app and Claude connector",
+    "robos:version": 1,
+    "robos:webElement": "robos-walkthrough-checkpoints",
+    "robos:instructions": "Use the task implementation checkout. Inspect repository setup instructions and available browser tools. Preserve edits. Show actual observations, never invented results. Stop at each checkpoint for the reviewer. Ask a concrete correction question when blocked. Never push, deploy, publish a tunnel, or change production without explicit authorization. Use real local MCP service data. Do not substitute production, a fixture URL, or CLI-only checks for the native connector walkthrough.",
+    "robos:checkpoints": [
+      {
+        "title": "Start the app and MCP locally",
+        "given": "The task checkout and local development instructions are available.",
+        "when": "Start the local MCP service and web app. Discover the actual MCP route and configure the web app to display it. Verify readiness. Record the app URL, local MCP URL and service startup commands; never invent a port or route.",
+        "then": "The app and local MCP service are running. Show both URLs and how to stop the services."
+      },
+      {
+        "title": "Follow the Claude instructions in Quickstart",
+        "given": "The local app is configured to use the local MCP service.",
+        "when": "Open Quickstart, select Claude Desktop, follow the displayed instructions and documentation link, and copy the MCP URL. Compare the displayed and copied URL with the running local MCP endpoint.",
+        "then": "The reviewer sees the local MCP URL in the product and the clipboard contains that same URL."
+      },
+      {
+        "title": "Connect Claude to the local service",
+        "given": "The local instructions and MCP endpoint have been checked.",
+        "when": "Follow the current Claude connector documentation. Remote connectors run in the cloud and cannot reach localhost directly. If necessary ask for an approved reachable development endpoint or tunnel; do not silently use production or publish a tunnel. Show its relationship to the local service. Pause for the user to complete login and consent.",
+        "then": "Record the actual connector result. If reachability or sign-in is missing, report this checkpoint blocked, not passed."
+      },
+      {
+        "title": "Try a read-only MCP request",
+        "given": "Claude is connected to the development MCP service.",
+        "when": "Ask Claude which project it can inspect and what data is available, without changing anything. Capture the actual request and response and identify the development dataset.",
+        "then": "Show the real response from the local-backed service. Do not claim native Claude success from a CLI or fixture test."
+      }
+    ]
+  }
+]

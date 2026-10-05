@@ -9,12 +9,15 @@ function prepareLocalReview(workspace,task={},root=path.join(os.homedir(),'.robo
   const evidenceDir=require('../../robos-lib/evidence-templates').taskEvidenceDirectory(workspace,task);
   const evidenceConfig={};
   for(const [key,name] of [['evidencePlanPath','evidence-plan.json'],['evidenceTemplatePath','template.json'],['evidenceBundlePath','bundle.json']])if(fs.existsSync(path.join(evidenceDir,name)))evidenceConfig[key]=path.join(evidenceDir,name);
+  const walkthroughPath=path.join(evidenceDir,'walkthrough.json');
+  if(fs.existsSync(walkthroughPath)){require('./demo-session').validateProcess(JSON.parse(fs.readFileSync(walkthroughPath,'utf8')));evidenceConfig.demoProcess=walkthroughPath;}
   if(fs.existsSync(file)){const saved=JSON.parse(fs.readFileSync(file,'utf8'));fs.writeFileSync(file,JSON.stringify({...saved,...evidenceConfig},null,2)+'\n',{mode:0o600});return file;}
   const processFile=path.join(dir,'demo.json');
-  fs.writeFileSync(processFile,JSON.stringify({instructions:`Demonstrate the actual local changes for ${task.title||branch}. Inspect the repository's dev instructions, start its sandbox in dev mode, and use Chrome DevTools MCP. Preserve source edits. Use real observations and stop at each checkpoint. Never create a PR automatically.`,checkpoints:[{title:'Understand the change',given:'The implementation branch is checked out.',when:'Inspect the diff and task acceptance criteria. Explain the behavior to demonstrate and prepare the local app.',then:'The reviewer can see the app and understands the first behavior to try.'},{title:'Try the changed behavior',given:'The local app is ready.',when:'Demonstrate the changed behavior and verify the relevant acceptance criteria in the app.',then:'Describe what passed, what remains unverified, and pause for the reviewer.'}]},null,2),{mode:0o600});
+  const walkthroughs=require('../../robos-lib/walkthrough-templates');
+  if(!evidenceConfig.demoProcess)fs.writeFileSync(processFile,JSON.stringify(walkthroughs.instantiate(walkthroughs.BUILTIN[0],task),null,2)+'\n',{mode:0o600});
   const candidates=[process.env.ROBOS_CODEX_BIN,'/usr/lib/chatgpt/resources/codex',...(process.env.PATH||'').split(path.delimiter).map(p=>path.join(p,'codex'))].filter(Boolean);
   const command=candidates.find(p=>{try{fs.accessSync(p,fs.constants.X_OK);return true;}catch{return false;}});
-  const config={...evidenceConfig,task,workspace,repo,title:task.title||branch,baseRef,summary:task.body||'',demoProcess:processFile};
+  const config={...evidenceConfig,task,workspace,repo,title:task.title||branch,baseRef,summary:task.body||'',demoProcess:evidenceConfig.demoProcess||processFile};
   if(command)config.demoAgent={command,args:['exec','--json'],timeoutMs:600000};
   fs.writeFileSync(file,JSON.stringify(config,null,2)+'\n',{mode:0o600});return file;
 }

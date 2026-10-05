@@ -24,7 +24,7 @@ window.mountWalkthrough = async function () {
   document.addEventListener('click', dismissMenu); document.addEventListener('keydown', escapeMenu);
   next.className = 'walkthrough-primary'; start.className = 'walkthrough-primary'; retry.className = '';
   bar.append(title, badge, more);
-  const checkpoint = document.createElement('section'); checkpoint.className = 'walkthrough-checkpoint'; checkpoint.setAttribute('aria-live', 'polite');
+  const checkpoint = document.createElement('robos-walkthrough-checkpoints'); checkpoint.className = 'walkthrough-checkpoint'; checkpoint.setAttribute('aria-live', 'polite');
   const stepActions = document.createElement('div'); stepActions.className = 'walkthrough-step-actions'; stepActions.append(start, resume, explain, retry, next);
   const error=document.createElement('p');error.className='walkthrough-error';error.setAttribute('role','alert');
   stage.append(bar,checkpoint,stepActions,error);
@@ -58,7 +58,11 @@ window.mountWalkthrough = async function () {
     checkpoint.replaceChildren();
     const c = value.checkpoint;
     if (c) { const h = document.createElement('h3'); h.textContent = c.title; const p = document.createElement('p'); p.textContent = busy&&!value.reviewChatActive ? `I’m preparing “${c.title}”. I’ll show you what to try and pause when it’s ready.` : value.guidance || c.summary || 'Ask Explain for a walkthrough of this step, or try the app before moving on.'; checkpoint.append(h, p); if (value.baseline) { const note = document.createElement('small'); note.textContent = `Before the change · ${value.baseline.ref} · ${value.baseline.revision.slice(0, 8)}`; checkpoint.append(note); } }
-    else checkpoint.textContent = 'Start the dev app and demonstrate one checkpoint at a time. You decide when we move on.';
+    else {
+      const intro=document.createElement('p');intro.textContent='Start the dev app and demonstrate one checkpoint at a time. You decide when we move on.';checkpoint.append(intro);
+      const list=document.createElement('ol');for(const step of value.process.checkpoints){const item=document.createElement('li');item.textContent=step.title;list.append(item);}checkpoint.append(list);
+    }
+    if(value.process.template){const name=document.createElement('p');name.textContent='Walkthrough template: '+value.process.template.name;name.title=value.process.template.id;checkpoint.prepend(name);}
     if ((value.walkthroughStatus||value.status) === 'error') { const reason = document.createElement('p'); reason.className = 'walkthrough-blocker'; reason.textContent = (value.messages.filter(m => m.kind !== 'progress' && m.role !== 'user').at(-1)?.text || 'This step could not be verified.') + (lastStep ? ' You can recheck or open Suggest Changes.' : ' Recheck this step, open Suggest Changes, or continue with this check marked unverified.'); checkpoint.append(reason); }
     if (value.status === 'paused' && lastStep) { const done = document.createElement('p'); done.textContent = 'You’ve reached the end of this walkthrough. Use Suggest Changes to request edits, or use More to start over. This does not approve or merge the PR.'; checkpoint.append(done); }
   }
