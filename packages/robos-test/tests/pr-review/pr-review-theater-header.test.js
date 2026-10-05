@@ -9,18 +9,23 @@ describe('PR Review Theater Header & Action Suite', () => {
   const indexHtmlPath = path.resolve(__dirname, '../../../pr-review/renderer/index.html');
   const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
 
-  it('1. Theater header DOM has non-clickable logo and clickable actions near the logo', () => {
+  it('1. Top bar holds only navigation and window controls; PR actions sit beside the PR', () => {
     // Logo is a non-clickable badge, not a button
     assert.match(indexHtml, /<span class="theater-badge"[^>]*id="theater-badge-logo"[^>]*>🎭 PR REVIEW THEATER<\/span>/);
     assert.doesNotMatch(indexHtml, /<button[^>]*id="theater-badge-logo"/, 'Logo must not be a button');
 
-    // Actions near the logo
-    assert.match(indexHtml, /id="theater-topbar-actions"/, 'Actions toolbar near logo must exist');
-    assert.match(indexHtml, /id="theater-btn-open-browser"/, 'Open PR in browser button must exist near logo');
-    assert.match(indexHtml, /id="theater-btn-open-intellij"/, 'IntelliJ launch button must exist near logo');
-    assert.match(indexHtml, /id="theater-btn-open-vscode"/, 'VS Code launch button must exist near logo');
-    assert.match(indexHtml, /id="theater-btn-copy-dropdown"/, 'Copy dropdown button must exist near logo');
-    assert.match(indexHtml, /id="theater-btn-checks"/, 'CI checks button must exist near logo');
+    // Duplicate launchers were removed: the PR pill opens GitHub, the CI chip opens checks,
+    // and the Open in IDE stage owns IntelliJ / VS Code.
+    for (const id of ['theater-topbar-actions', 'theater-btn-open-browser', 'theater-btn-open-intellij', 'theater-btn-open-vscode', 'theater-btn-checks']) {
+      assert.doesNotMatch(indexHtml, new RegExp(`id="${id}"`), `${id} must not return to the top bar`);
+    }
+
+    // One Open in IDE and one Copy menu, both inside the PR header
+    const header = indexHtml.slice(indexHtml.indexOf('id="theater-pr-header"'), indexHtml.indexOf('id="theater-checks-modal"'));
+    assert.match(header, /id="open-review-ide"/, 'Open in IDE lives in the PR header');
+    assert.match(header, /id="theater-btn-copy-dropdown"/, 'Copy dropdown lives in the PR header');
+    assert.equal((indexHtml.match(/id="open-review-ide"/g) || []).length, 1, 'exactly one Open in IDE button');
+    assert.doesNotMatch(indexHtml, /theater-mini-action-btn/, 'inline URL/Title/Desc buttons are replaced by the Copy menu');
   });
 
   it('2. Theater PR header displays improved PR title, work-items container, and clickable badges', () => {

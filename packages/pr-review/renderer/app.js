@@ -848,7 +848,7 @@ function renderTheaterChecksUI(checks, prUrl) {
 
   const statusType = failed > 0 ? 'failure' : (pending > 0 || total === 0 ? 'pending' : 'success');
 
-  // Update button near logo
+  // Checks summary (legacy header button; the CI chip below is the visible control)
   const checksDot = document.getElementById('theater-checks-dot');
   if (checksDot) {
     checksDot.className = `checks-dot dot-${statusType}`;
@@ -1000,7 +1000,7 @@ function closeTheaterDropdown() {
   if (menu) menu.classList.add('hidden');
 }
 
-// ── Setup Action Listeners Near Logo ──────────────────────────────────────
+// ── Setup PR header action listeners ──────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
   setupTheaterHeaderEventListeners();
@@ -1010,18 +1010,6 @@ let theaterHeaderListenersReady = false;
 function setupTheaterHeaderEventListeners() {
   if (theaterHeaderListenersReady) return;
   theaterHeaderListenersReady = true;
-  document.getElementById('theater-btn-open-browser')?.addEventListener('click', window.openPRInBrowser);
-
-  document.getElementById('theater-btn-open-intellij')?.addEventListener('click', () => {
-    openInIDE('intellij');
-    showTheaterToast('Launching PR in IntelliJ IDEA...', '⚡');
-  });
-
-  document.getElementById('theater-btn-open-vscode')?.addEventListener('click', () => {
-    openInIDE('vscode');
-    showTheaterToast('Launching PR in VS Code...', '🔵');
-  });
-
   document.getElementById('theater-btn-copy-dropdown')?.addEventListener('click', (e) => {
     e.stopPropagation();
     document.getElementById('theater-copy-menu')?.classList.toggle('hidden');
