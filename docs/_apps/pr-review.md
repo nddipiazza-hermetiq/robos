@@ -62,3 +62,18 @@ the template name, and its chosen web component. Text outputs appear directly
 in their slots; screenshots retain their before/after labels. Missing required
 slots remain visible. Older reviews without templates still show their files;
 the next generation run asks the agent to choose a template first.
+
+## Choose a task when opening Code Review
+
+Opening Code Review from the launcher shows **Open a task**. Saved local reviews
+appear first, followed by open tasks from the configured GitHub task server.
+Search by title, issue number, or repository. **Open review** restores that
+task's changes, evidence, and walkthrough; **Choose checkout** lets you locate
+an implementation branch for a task without a saved review. Epics are excluded
+from the GitHub task list. Saved reviews remain available if GitHub is offline.
+
+Direct task and PR links still open their review immediately. Each local task
+has its own window, so selecting another task does not focus the wrong review.
+
+The review's **×** returns to **Open a task**. You can reopen that task or select
+another one; closing the review view does not discard its saved evidence.

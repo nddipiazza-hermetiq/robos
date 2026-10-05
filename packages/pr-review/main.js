@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, ipcMain, shell, protocol, net } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, protocol, net, dialog } = require('electron');
 protocol.registerSchemesAsPrivileged([{scheme:'robos-evidence',privileges:{standard:true,secure:true,supportFetchAPI:true}}]);
 const path = require('path');
 const fs   = require('fs');
@@ -151,9 +151,37 @@ function getRepos(server) {
   return [];
 }
 
+// The launcher lists task reviews; explicit task/PR links still open directly.
+const reviewTaskCatalog=new Map();
+ipcMain.handle('list-review-tasks',async(_,remote=false)=>{
+ try{const result=await require('./lib/task-picker').listTasks({server:getActiveServer(),remote:remote===true});
+  for(const row of result.rows)reviewTaskCatalog.set(row.id,row);
+  return {ok:true,tasks:result.rows.map(({manifest,task,...row})=>row),warning:result.warning};
+ }catch(e){return {ok:false,error:e.message};}
+});
+ipcMain.handle('return-to-task-picker',async()=>{await win.loadFile(path.join(__dirname,'renderer','task-picker.html'));return {ok:true};});
+let openingTask=false;
+ipcMain.handle('open-review-task',async(_,id)=>{
+ if(openingTask)return {ok:false,error:'A task is already opening.'};
+ openingTask=true;
+ try{
+  const row=reviewTaskCatalog.get(id);if(!row)throw Error('Refresh the task list before opening this task.');
+  let manifest=row.manifest;
+  if(!manifest||!fs.existsSync(row.workspace||'')){
+   const choice=await dialog.showOpenDialog(win,{title:'Choose the implementation checkout for '+row.title,properties:['openDirectory']});
+   if(choice.canceled)return {ok:true,canceled:true};
+   manifest=require('./lib/prepare-local-review').prepareLocalReview(choice.filePaths[0],row.task);
+  }
+  loadLocalReview(manifest); // Validate the checkout before launching its review.
+  if(process.env.ROBOS_LOCAL_REVIEW&&path.resolve(manifest)===path.resolve(process.env.ROBOS_LOCAL_REVIEW)){await win.loadFile(path.join(__dirname,'renderer','index.html'));return {ok:true};}
+  const env={...process.env,ROBOS_LOCAL_REVIEW:manifest};delete env.ROBOS_REVIEW_URL;delete env.ELECTRON_RUN_AS_NODE;
+  const child=require('node:child_process').spawn(process.execPath,[__dirname,'--no-sandbox','--disable-gpu','--disable-dev-shm-usage'],{env,detached:true,stdio:'ignore'});
+  await new Promise((resolve,reject)=>{child.once('spawn',resolve);child.once('error',reject);});child.unref();return {ok:true};
+ }catch(e){return {ok:false,error:e.message};}finally{openingTask=false;}
+});
 let win;
 app.setName('pr-review');
-app.setPath('userData', path.join(process.env.HOME || '/home/robos', '.config', 'robos', 'electron', localReview ? 'pr-review-local' : 'pr-review'));
+app.setPath('userData', path.join(process.env.HOME || '/home/robos', '.config', 'robos', 'electron', localReview ? 'pr-review-local-'+require('node:crypto').createHash('sha256').update(path.resolve(process.env.ROBOS_LOCAL_REVIEW)).digest('hex').slice(0,12) : 'pr-review'));
 if (!app.requestSingleInstanceLock()) { app.quit(); process.exit(0); }
 app.on('second-instance', () => {
   const w = require('electron').BrowserWindow.getAllWindows()[0];
@@ -180,7 +208,7 @@ app.whenReady().then(() => {
     },
   });
   win.once('ready-to-show',()=>win.show());
-  win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  win.loadFile(path.join(__dirname, 'renderer', !localReview&&!process.env.ROBOS_REVIEW_URL?'task-picker.html':'index.html'));
   win.setMenuBarVisibility(false);
   if (_debugServer) _debugServer.startDebugServer(win, 19129);
 });

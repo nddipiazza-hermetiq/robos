@@ -1,5 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('api', {
+  showTaskPicker:()=>ipcRenderer.invoke('return-to-task-picker'),
+  listReviewTasks:remote=>ipcRenderer.invoke('list-review-tasks',remote),
+  openReviewTask:id=>ipcRenderer.invoke('open-review-task',id),
   reviewIDEs:()=>ipcRenderer.invoke('review-ides'),
   openReviewIDE:id=>ipcRenderer.invoke('review-open-ide',id),
   listSkills:()=>ipcRenderer.invoke('robos-skills-list'),

@@ -990,7 +990,7 @@ window.openGitHubChecks = function() {
 
 window.switchToMainChecksTab = function() {
   window.toggleChecksModal(false);
-  window.exitTheater();
+  document.getElementById('pr-review-theater')?.classList.add('hidden');
   const checksTab = document.querySelector('.tab-btn[data-tab="checks"]');
   if (checksTab) checksTab.click();
 };
@@ -1120,9 +1120,9 @@ window.openPRReviewTheater = async function(pr) {
   window.setTheaterStage(1);
 };
 
-window.exitTheater = function() {
-  const theaterEl = document.getElementById('pr-review-theater');
-  if (theaterEl) theaterEl.classList.add('hidden');
+window.exitTheater = async function() {
+  try { await window.api.showTaskPicker(); }
+  catch (error) { showTheaterToast('Could not open the task picker: ' + error.message, '⚠'); }
 };
 
 window.toggleTheaterFullscreen = function() {
