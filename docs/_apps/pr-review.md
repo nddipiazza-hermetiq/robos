@@ -42,3 +42,16 @@ For an author's draft PR, a green **Ready for review** button appears in the
 header when CI passes. Use **Reload PR** after checks finish to refresh it.
 Clicking the button checks GitHub again and takes the PR out of draft. A changed
 branch or pending/failed checks leave it in draft.
+
+## Review captured evidence
+
+The Evidence tab separates passed checks, failed checks, and checks still to
+verify. Pending means the check has not been verified; it does not mean a test
+failed. **Generate evidence** runs the task's evidence plan; **Run checks again**
+starts another run.
+
+Use **View screenshot**, **View exchange**, or **View test output** to inspect
+captured files inside the review. Text previews show the original content,
+limited to the first 256 KB, with an option to open the full file in another app.
+The evidence plan and earlier artifacts remain in expandable sections below
+current results.

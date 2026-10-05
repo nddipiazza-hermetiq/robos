@@ -6,24 +6,71 @@ window.mountEvidencePlan=async function(){
  const intro=stage.querySelector('.stage-header p');if(intro)intro.textContent='Review the chosen proof, captured artifacts, and checks still needed.';
  for(const el of stage.querySelectorAll('.stage-badge-wrap,.canvas-mode-bar,#canvas-desktop-view')){el.hidden=true;el.style.display='none';}
  stage.prepend(panel);
- const title=document.createElement('h3');title.textContent='Evidence for this task';
- const status=document.createElement('p');status.setAttribute('role','status');status.textContent='Loading evidence plan…';
- const body=document.createElement('div');body.className='evidence-plan-sections';
- const list=document.createElement('ul');
- const retry=document.createElement('button');retry.textContent='Choose evidence with AI';retry.hidden=true;
- const generate=document.createElement('button');generate.textContent='Generate evidence';generate.disabled=true;
- const runStatus=document.createElement('p');runStatus.setAttribute('role','status');
- const progress=document.createElement('div');progress.setAttribute('role','log');progress.style.cssText='max-height:260px;overflow:auto;white-space:pre-wrap;margin:12px 0';
- const results=document.createElement('ul');
- const references=document.createElement('details');references.className='evidence-references';const refsTitle=document.createElement('summary');refsTitle.textContent='Earlier artifacts and missing checks';references.append(refsTitle,list);
- panel.append(title,status,generate,runStatus,progress,results,body,references,retry);
+ function el(tag, className, text){const node=document.createElement(tag);if(className)node.className=className;if(text)node.textContent=text;return node;}
+ const header=el('header','evidence-header');
+ const title=el('h3','','Evidence for this task');
+ const generate=el('button','evidence-generate','Generate evidence');generate.disabled=true;
+ const help=el('p','evidence-help','Run the planned checks and capture their results.');
+ header.append(title,generate,help);
+ const status=el('p');status.setAttribute('role','status');status.textContent='Loading evidence plan…';
+ const body=el('div','evidence-plan-sections');
+ const list=el('ul');
+ const retry=el('button','','Choose evidence with AI');retry.hidden=true;
+ const runStatus=el('p','evidence-run-status');runStatus.setAttribute('role','status');
+ const runNote=el('p','evidence-run-note');
+ const progressDetails=el('details','evidence-progress');progressDetails.append(el('summary','','Run activity'));
+ const progress=el('div');progress.setAttribute('role','log');progressDetails.append(progress);
+ const results=el('div','evidence-results');
+ const artifacts=el('section','evidence-artifacts');
+ const planDetails=el('details','evidence-plan');planDetails.append(el('summary','','Evidence plan'),status,body,retry);
+ const references=el('details','evidence-references');references.append(el('summary','','Earlier artifacts and missing checks'),list);
+ const preview=el('dialog','evidence-preview');preview.setAttribute('aria-labelledby','evidence-preview-title');
+ const previewTitle=el('h3');previewTitle.id='evidence-preview-title';
+ const close=el('button','','Close');close.onclick=()=>preview.close();
+ const previewHeader=el('header');previewHeader.append(previewTitle,close);
+ const previewBody=el('div','evidence-preview-body');
+ const openFile=el('button','','Open file in another app');
+ preview.append(previewHeader,previewBody,openFile);
+ panel.append(header,runStatus,runNote,results,artifacts,progressDetails,planDetails,references,preview);
+ let previewRequest=0;
+ preview.addEventListener('close',()=>{previewRequest++;});
+ async function showArtifact(item){
+  const request=++previewRequest;
+  previewTitle.textContent=item.label||'Captured file';previewBody.replaceChildren();
+  openFile.onclick=async()=>{try{const r=await window.api.openReviewEvidence(item.id);if(!r.ok)throw Error(r.error);}catch(e){previewBody.append(el('p','evidence-error',e.message));}};
+  preview.showModal();
+  if(/\.(png|jpe?g|webp)$/i.test(item.path||'')){
+   const img=el('img');img.src='robos-evidence://screenshot/'+item.id;img.alt=item.label;
+   img.onerror=()=>{if(request===previewRequest)previewBody.replaceChildren(el('p','evidence-error','This screenshot could not be loaded.'));};previewBody.append(img);return;
+  }
+  previewBody.append(el('p','','Loading file…'));
+  try{
+   const r=await window.api.readReviewEvidence(item.id);if(request!==previewRequest)return;if(!r.ok)throw Error(r.error);
+   previewBody.replaceChildren(el('pre','',r.text));
+   if(r.truncated)previewBody.append(el('p','','Showing the first 256 KB. Open the file to read the rest.'));
+  }catch(e){if(request===previewRequest)previewBody.replaceChildren(el('p','evidence-error',e.message));}
+ }
+ function artifactRow(item){
+  const row=el('article','evidence-artifact');const name=el('div');name.append(el('h4','',item.label||'Captured file'));
+  const filename=(item.path||'').split('/').pop();if(filename)name.append(el('p','',filename));
+  const action=/\.(png|jpe?g|webp)$/i.test(item.path||'')?'View screenshot':/exchange/i.test((item.label||'')+' '+filename)?'View exchange':/copied|clipboard/i.test(item.label||'')?'View copied text':/test/i.test(item.label||'')?'View test output':'View details';
+  const button=el('button','',action);button.setAttribute('aria-label',action+': '+item.label);button.onclick=()=>showArtifact(item);row.append(name,button);return row;
+ }
  async function renderRun(run){
-  if(!run)return;generate.disabled=run.status==='running';generate.textContent=run.status==='running'?'Generating evidence…':'Generate evidence';
-  runStatus.textContent=run.status==='idle'?'No evidence run yet.':run.status+' — '+(run.summary||'Executing the evidence plan.');
-  progress.replaceChildren();for(const update of run.progress||[]){const bubble=document.createElement('p');bubble.className='walkthrough-bubble assistant progress-entry';bubble.textContent=update.text;progress.append(bubble);}progress.scrollTop=progress.scrollHeight;
-  results.replaceChildren();for(const scenario of run.scenarios||[]){const li=document.createElement('li');li.textContent=(scenario.title||scenario.id)+' · '+scenario.status+' — '+scenario.summary;results.append(li);}
-  for(const item of run.artifacts||[]){const li=document.createElement('li'),open=document.createElement('button');open.textContent=item.label;open.onclick=()=>window.api.openReviewEvidence(item.id);li.append(open);if(/\.(png|jpe?g|webp)$/i.test(item.path||'')){const img=document.createElement('img');img.src='robos-evidence://screenshot/'+item.id;img.alt=item.label;img.loading='lazy';img.style.cssText='display:block;max-width:100%;max-height:520px;margin:12px 0;border:1px solid #30363d';li.append(img);}results.append(li);}
-
+  if(!run)return;
+  const running=run.status==='running', scenarios=run.scenarios||[];
+  generate.disabled=running;generate.textContent=running?'Generating evidence…':run.status==='idle'?'Generate evidence':'Run checks again';
+  const passed=scenarios.filter(s=>s.status==='passed'),failed=scenarios.filter(s=>s.status==='failed'),pending=scenarios.filter(s=>!['passed','failed'].includes(s.status));
+  const counts=[];if(passed.length)counts.push(passed.length+' passed');if(failed.length)counts.push(failed.length+' failed');if(pending.length)counts.push(pending.length+' pending');
+  runStatus.textContent=running?'Checks are running':counts.length?counts.join(' · '):({idle:'No checks run yet',error:'Evidence run could not finish',interrupted:'Evidence run interrupted',completed:'Evidence collected','needs-attention':'Checks need follow-up'}[run.status]||'Evidence results');
+  runNote.textContent=['error','interrupted'].includes(run.status)?run.summary||'Run the checks again to finish collecting evidence.':pending.length?'Pending checks have not been verified. They are not failed tests.':(!scenarios.length&&!running?run.summary||'':'');
+  results.replaceChildren();
+  for(const [heading,items,tone] of [['Still to verify',pending,'pending'],['Failed checks',failed,'failed'],['Passed checks',passed,'passed']]){
+   if(!items.length)continue;const section=el('section','evidence-check-group');section.append(el('h4','',heading));
+   for(const item of items){const row=el('article','evidence-check '+tone);row.append(el('span','evidence-check-badge',tone==='pending'?'Pending':tone==='failed'?'Failed':'Passed'));const copy=el('div');copy.append(el('h5','',item.title||item.id),el('p','',item.summary||''));row.append(copy);section.append(row);}results.append(section);
+  }
+  progress.replaceChildren();for(const update of run.progress||[]){progress.append(el('p','walkthrough-bubble assistant progress-entry',update.text));}progressDetails.hidden=!progress.childElementCount;progressDetails.open=running;progress.scrollTop=progress.scrollHeight;
+  artifacts.replaceChildren();if(run.artifacts?.length){artifacts.append(el('h4','','Captured evidence'),el('p','evidence-help','Open a screenshot or read the original output.'));for(const item of run.artifacts)artifacts.append(artifactRow(item));}
  }
  generate.onclick=async()=>{generate.disabled=true;try{const r=await window.api.generateReviewEvidence();if(!r.ok)throw Error(r.error);await renderRun(r.state);}catch(e){runStatus.textContent=e.message;generate.disabled=false;}};
  window.cleanupEvidenceRun?.();const unsubscribe=window.api.onEvidenceRunState?.(renderRun);window.cleanupEvidenceRun=()=>unsubscribe?.();

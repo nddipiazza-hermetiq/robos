@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('api', {
   reviewMessageOptions: url => ipcRenderer.invoke('review-message-options',url),
   reviewMessageChannels: serverId => ipcRenderer.invoke('review-message-channels', serverId),
   sendReviewMessage: input => ipcRenderer.invoke('review-message-send', input),
+  readReviewEvidence: id => ipcRenderer.invoke('read-review-evidence',id),
   openReviewEvidence: id => ipcRenderer.invoke('open-review-evidence',id),
   generateReviewEvidence:()=>ipcRenderer.invoke('generate-review-evidence'),
   evidenceRunState:()=>ipcRenderer.invoke('review-evidence-run-state'),

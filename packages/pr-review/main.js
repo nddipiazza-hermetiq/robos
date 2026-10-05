@@ -24,6 +24,7 @@ const { ReviewSessionStore } = require('./lib/review-session-store');
 const reviewStore = localReview ? new ReviewSessionStore({repo:localReview.repo,number:localReview.number,branch:localReview.pr.headBranch,workspace:localReview.workspace}) : null;
 const evidenceRunner=localReview?new (require('./lib/evidence-runner').EvidenceRunner)(localReview,reviewStore):null;
 const evidencePlanner=localReview?new (require('./lib/evidence-plan').EvidencePlanner)(localReview,reviewStore):null;
+ipcMain.handle('read-review-evidence',async(_,id)=>{try{const items=require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence;return {ok:true,...await require('./lib/evidence-preview').readEvidenceText(items,id)};}catch(e){return {ok:false,error:e.message};}});
 ipcMain.handle('open-review-evidence',async(_,id)=>{try{const item=require('./lib/review-evidence').evidenceFor(localReview,reviewStore).evidence.find(e=>e.id===id);if(!item?.path)throw Error('No local artifact for this evidence entry.');const error=await shell.openPath(item.path);if(error)throw Error(error);return {ok:true};}catch(e){return {ok:false,error:e.message};}});
 ipcMain.handle('review-evidence-plan',async(_,recommend=false)=>{try{
  if(!evidencePlanner)throw Error('Open a local review to plan its evidence.');
