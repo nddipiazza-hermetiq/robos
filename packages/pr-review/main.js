@@ -42,7 +42,7 @@ ipcMain.handle('generate-review-evidence',async()=>{try{
 evidenceRunner?.on('state',state=>{for(const window of BrowserWindow.getAllWindows())window.webContents.send('review-evidence-run-state',state);});
 const { DemoSession } = require('./lib/demo-session');
 const demoSession = localReview?.demoProcess ? new DemoSession({ workspace: localReview.workspace, processFile: localReview.demoProcess, agent: localReview.demoAgent, beforeWorkspace: localReview.beforeWorkspace, store: reviewStore }) : null;
-if(demoSession){demoSession.evidencePlan=()=>evidencePlanner.get();demoSession.reviewContext={title:localReview.title,task:localReview.task,base:localReview.base,head:localReview.head,files:localReview.changedFiles};}
+if(demoSession){demoSession.evidencePlan=()=>evidencePlanner.get();demoSession.reviewContext={title:localReview.title,task:localReview.task,base:localReview.base,head:localReview.head,files:localReview.changedFiles,evidencePlanPath:localReview.evidencePlanPath,evidenceTemplatePath:localReview.evidenceTemplatePath,evidenceBundlePath:localReview.evidenceBundlePath};}
 // Optional workstation snapshot for restarting the theater without losing a paused review.
 if (demoSession && localReview.resumeStatePath) {
   const saved = JSON.parse(fs.readFileSync(localReview.resumeStatePath, 'utf8'));
