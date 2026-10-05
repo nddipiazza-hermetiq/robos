@@ -27,3 +27,9 @@
 #stage-6 .walkthrough-blocker{padding:16px;border-left:3px solid #c39750;color:#dfc391;font-size:14px;line-height:1.6}
 #stage-6 summary:focus-visible,#stage-6 button:focus-visible{outline:2px solid #8cbfe1;outline-offset:4px}
 @media(max-width:900px){#stage-6.walkthrough{padding:20px}#stage-6 .walkthrough-checkpoint h2{font-size:21px}#stage-6 .walkthrough-steps>li{padding:14px;gap:12px}}
+
+#stage-6 .walkthrough-action-list{list-style:decimal;margin:0;padding-left:24px;color:#a9b7c6}
+#stage-6 .walkthrough-action-list>li{padding:0 0 16px 6px}
+#stage-6 .walkthrough-action-list p{font-size:14px;line-height:1.6;margin:0 0 8px;color:#dce5ee}
+#stage-6 .walkthrough-action-list .walkthrough-expected{color:#94a9bb;font-size:13px}
+#stage-6 .walkthrough-action-list pre{background:#090f16;border:1px solid #304153;padding:14px;overflow:auto;white-space:pre;margin:8px 0 12px;border-radius:4px;font:13px/1.6 monospace}

@@ -19,3 +19,12 @@ test('registry persists custom walkthroughs and rejects mutation or executable c
  assert.throws(()=>templates.validateTemplate({...t,'robos:webElement':'script'}),/component/);
  assert.throws(()=>templates.validateTemplate({...t,'robos:checkpoints':[]}),/checkpoint/);
 });
+test('v2 templates contain actionable steps and command blocks require working directories',()=>{
+ for(const t of templates.BUILTIN.filter(t=>t['robos:version']===2)){
+  templates.validateTemplate(t);for(const c of t['robos:checkpoints'])assert.ok(c.steps.length);
+ }
+ const t=structuredClone(templates.BUILTIN.at(-1));
+ t['robos:checkpoints'][0].steps=[{instruction:'Check the checkout',command:'git status --short'}];
+ assert.throws(()=>templates.validateTemplate(t),/working directory/);
+ t['robos:checkpoints'][0].steps[0].cwd='/tmp/checkout';assert.doesNotThrow(()=>templates.validateTemplate(t));
+});

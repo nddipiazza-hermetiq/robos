@@ -76,8 +76,17 @@ window.mountWalkthrough = async function () {
       if(i===stepIndex)item.setAttribute('aria-current','step');
       const number=document.createElement('span');number.className='walkthrough-step-number';number.textContent=String(i+1);number.setAttribute('aria-hidden','true');
       const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent=step.title;
-      const body=document.createElement('dl');
+      const body=document.createElement(step.steps?.length?'div':'dl');
       for(const [label,text] of [['Before you start',step.given],['What to do',step.when],['What to check',step.then]]){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=text;body.append(dt,dd);}
+      if(step.steps?.length){
+        const actions=document.createElement('ol');actions.className='walkthrough-action-list';
+        for(const action of step.steps){
+          const li=document.createElement('li'),text=document.createElement('p');text.textContent=action.instruction;li.append(text);
+          if(action.command){const location=document.createElement('small');location.textContent='Bash · '+action.cwd;const pre=document.createElement('pre'),code=document.createElement('code');code.textContent=action.command;pre.append(code);li.append(location,pre);}
+          if(action.expected){const expected=document.createElement('p');expected.className='walkthrough-expected';expected.textContent='Check: '+action.expected;li.append(expected);}actions.append(li);
+        }
+        body.replaceChildren();body.append(actions);
+      }
       details.append(summary,body);item.append(number,details);list.append(item);
     });checkpoint.append(list);
     if ((value.walkthroughStatus||value.status) === 'error') { const reason = document.createElement('p'); reason.className = 'walkthrough-blocker'; reason.textContent = (value.messages.filter(m => m.kind !== 'progress' && m.role !== 'user').at(-1)?.text || 'This step could not be verified.') + (lastStep ? ' You can recheck or open Suggest Changes.' : ' Recheck this step, open Suggest Changes, or continue with this check marked unverified.'); checkpoint.append(reason); }

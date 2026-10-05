@@ -14,7 +14,7 @@ function prepareLocalReview(workspace,task={},root=path.join(os.homedir(),'.robo
   if(fs.existsSync(file)){const saved=JSON.parse(fs.readFileSync(file,'utf8'));fs.writeFileSync(file,JSON.stringify({...saved,...evidenceConfig},null,2)+'\n',{mode:0o600});return file;}
   const processFile=path.join(dir,'demo.json');
   const walkthroughs=require('../../robos-lib/walkthrough-templates');
-  if(!evidenceConfig.demoProcess)fs.writeFileSync(processFile,JSON.stringify(walkthroughs.instantiate(walkthroughs.BUILTIN[0],task),null,2)+'\n',{mode:0o600});
+  if(!evidenceConfig.demoProcess)fs.writeFileSync(processFile,JSON.stringify(walkthroughs.instantiate(walkthroughs.BUILTIN.find(t=>t['@id']==='urn:robos:walkthrough-template:local-app:v2'),task),null,2)+'\n',{mode:0o600});
   const candidates=[process.env.ROBOS_CODEX_BIN,'/usr/lib/chatgpt/resources/codex',...(process.env.PATH||'').split(path.delimiter).map(p=>path.join(p,'codex'))].filter(Boolean);
   const command=candidates.find(p=>{try{fs.accessSync(p,fs.constants.X_OK);return true;}catch{return false;}});
   const config={...evidenceConfig,task,workspace,repo,title:task.title||branch,baseRef,summary:task.body||'',demoProcess:evidenceConfig.demoProcess||processFile};
