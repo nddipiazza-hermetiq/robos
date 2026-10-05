@@ -50,10 +50,12 @@ class ReviewPRState {
   return result;
  }
  async push(){
-  const pr=await this.assertAuthor(),opts=await this.options();const git=async args=>(await this.run('git',args,opts)).trim();
+  const pr=this.review.pullRequest ? await this.assertAuthor() : this.review.pr;
+  if(!pr?.local || !pr.headBranch || pr.headBranch===pr.baseBranch || ['main','master'].includes(pr.headBranch))throw Error('Select a local feature branch before pushing.');
+  const opts=await this.options();const git=async args=>(await this.run('git',args,opts)).trim();
   if(await git(['branch','--show-current'])!==pr.headBranch)throw Error('The checkout is not on the PR branch.');
   const remote=await git(['remote','get-url','origin']);if(remote.match(/github\.com[:/]([^/]+\/[^/]+?)(?:\.git)?$/)?.[1]?.toLowerCase()!==this.review.repo.toLowerCase())throw Error('The checkout origin does not match the PR repository.');
-  if(require('./review-working-tree').hasSourceChanges(await this.run('git',require('./review-working-tree').statusArgs,opts)))throw Error('Commit the walkthrough adjustments before pushing.');
+  if(require('./review-working-tree').hasSourceChanges(await this.run('git',require('./review-working-tree').statusArgs,opts)))throw Error('Commit your changes before pushing.');
   await git(['push','origin','HEAD:refs/heads/'+pr.headBranch]);return this.refresh();
  }
 }

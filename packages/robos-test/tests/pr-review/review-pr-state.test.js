@@ -46,3 +46,24 @@ test('ready requests selected GitHub reviewers and excludes the author',async()=
  await f.api.ready('abc',['author','teammate','org/backend']);
  assert.deepEqual(f.calls.find(c=>c.includes('--add-reviewer')),['gh','pr','edit',f.remote.url,'--add-reviewer','teammate,org/backend']);
 });
+
+test('unpublished local feature branch can be pushed without a PR',async()=>{
+ const f=fixture();delete f.api.review.pullRequest;
+ Object.assign(f.api.review.pr,{headBranch:'codex/filters',baseBranch:'main'});
+ await f.api.push();
+ assert.deepEqual(f.calls.find(c=>c[1]==='push'),['git','push','origin','HEAD:refs/heads/codex/filters']);
+ assert.ok(!f.calls.some(c=>c[0]==='gh'));
+});
+test('unpublished push rejects protected branches, dirty source, and wrong origin',async()=>{
+ for(const kind of ['main','dirty','origin']){
+  const f=fixture();delete f.api.review.pullRequest;
+  Object.assign(f.api.review.pr,{headBranch:kind==='main'?'main':'codex/filters',baseBranch:'main'});
+  const run=f.api.run;f.api.run=async(bin,args,opts)=>{
+   if(bin==='git'&&args[0]==='status'&&kind==='dirty')return ' M app.js\n';
+   if(bin==='git'&&args[0]==='remote'&&kind==='origin')return 'git@github.com:other/repo.git';
+   return run(bin,args,opts);
+  };
+  await assert.rejects(f.api.push(),/feature branch|Commit your|origin does not match/);
+  assert.ok(!f.calls.some(c=>c[1]==='push'));
+ }
+});
