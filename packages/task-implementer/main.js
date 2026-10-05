@@ -276,6 +276,7 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
   activeAgents.set(taskKey, child);
 
   let stdoutBuf = '';
+  let lastAssistantText = '';
   child.stdout.on('data', d => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
     stdoutBuf += d.toString();
@@ -294,8 +295,9 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
             .join('');
         } else if (obj.type === 'text') {
           text = obj.text;
+          if(text)lastAssistantText=text;
         } else if (obj.type === 'result') {
-          text = obj.result || '';
+          text = obj.result === lastAssistantText ? '' : obj.result || '';
         } else {
           continue; // skip tool_use, tool_result, etc.
         }
@@ -324,9 +326,10 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
 
 ipcMain.handle('open-local-review', async (_, task) => {
   if (activeAgents.has(task?.key || task?.id)) return {ok:false,error:'Wait for Task Implementer to finish before reviewing its branch.'};
-  const selected = await dialog.showOpenDialog(mainWindow, {title:'Choose the implementation branch checkout',properties:['openDirectory']});
+  const selected = task.implementationWorkspace ? {filePaths:[task.implementationWorkspace]} : await dialog.showOpenDialog(mainWindow, {title:'Choose the implementation branch checkout',properties:['openDirectory']});
   if (selected.canceled) return {ok:true,canceled:true};
   try {
+    if(!path.isAbsolute(selected.filePaths[0]))throw Error('Choose an absolute checkout path.');
     const manifest = require('../pr-review/lib/prepare-local-review').prepareLocalReview(selected.filePaths[0],task);
     const child = cp.spawn(process.execPath, [path.join(__dirname, '../pr-review'), '--no-sandbox', '--disable-gpu'], {detached:true, stdio:'ignore', env:{...process.env, ROBOS_LOCAL_REVIEW:manifest}});
     await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); });

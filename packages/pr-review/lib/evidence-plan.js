@@ -6,7 +6,9 @@ const {evidenceSection,planningInstructions}=require('../../robos-lib/task-evide
 function readPlan(review,store){
  const plan=readRawPlan(review,store);if(!plan)return null;
  let cached;try{cached=store?.directory?JSON.parse(fs.readFileSync(path.join(store.directory,'evidence-plan.json'),'utf8')):null;}catch(e){if(e.code!=='ENOENT')throw e;}
- const template=plan.template|| ((!cached?.head||cached.head===review.head)?cached?.template:null)|| (review.evidenceTemplatePath?require('../../robos-lib/evidence-templates').readTemplate(review.evidenceTemplatePath):null);
+ let template=plan.template|| ((!cached?.head||cached.head===review.head)?cached?.template:null)|| (review.evidenceTemplatePath?require('../../robos-lib/evidence-templates').readTemplate(review.evidenceTemplatePath):null);
+ const catalog=require('../../robos-lib/evidence-templates');
+ if(template&&!template['@type']){const id=typeof template==='string'?template:template.id||template['@id'];const selected=catalog.listTemplates().find(t=>t['@id']===id);if(!selected)throw Error('Unknown evidence template reference: '+id);template=selected;}
  return template?{...plan,template:require('../../robos-lib/evidence-templates').validateTemplate(template)}:plan;
 }
 function readRawPlan(review,store){

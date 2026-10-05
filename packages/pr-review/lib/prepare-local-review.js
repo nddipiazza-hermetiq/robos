@@ -18,7 +18,7 @@ function prepareLocalReview(workspace,task={},root=path.join(os.homedir(),'.robo
   const candidates=[process.env.ROBOS_CODEX_BIN,'/usr/lib/chatgpt/resources/codex',...(process.env.PATH||'').split(path.delimiter).map(p=>path.join(p,'codex'))].filter(Boolean);
   const command=candidates.find(p=>{try{fs.accessSync(p,fs.constants.X_OK);return true;}catch{return false;}});
   const config={...evidenceConfig,task,workspace,repo,title:task.title||branch,baseRef,summary:task.body||'',demoProcess:evidenceConfig.demoProcess||processFile};
-  if(command)config.demoAgent={command,args:['exec','--json'],timeoutMs:600000};
+  if(command)config.demoAgent={command,args:['exec','--json','--sandbox','workspace-write','-c','sandbox_workspace_write.network_access=true','--add-dir',git(['rev-parse','--path-format=absolute','--git-common-dir'])],timeoutMs:600000};
   fs.writeFileSync(file,JSON.stringify(config,null,2)+'\n',{mode:0o600});return file;
 }
 module.exports={prepareLocalReview};

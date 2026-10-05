@@ -244,7 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('filter-state').addEventListener('change', loadTasks);
   document.getElementById('filter-search').addEventListener('input', renderTaskList);
   const reviewButton = document.createElement('button'); reviewButton.textContent = 'Review branch…'; reviewButton.className = 'btn btn-secondary'; reviewButton.title = 'Optional local review before creating a PR'; document.getElementById('btn-start-agent').after(reviewButton);
-  reviewButton.addEventListener('click', async () => { if (!selectedTask) return; const result=await window.robos.openLocalReview(selectedTask); if(!result.ok) setAgentStatus(result.error,'error'); });
+  const checkout=document.createElement('input');checkout.id='implementation-checkout';checkout.placeholder='Implementation checkout path';checkout.setAttribute('aria-label','Implementation checkout path');checkout.style.cssText='width:100%;padding:10px;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;margin-top:10px';document.querySelector('.context-row').append(checkout);
+  reviewButton.addEventListener('click', async () => { if (!selectedTask) return; const workspace=checkout.value.trim();const result=await window.robos.openLocalReview({...selectedTask,...(workspace?{implementationWorkspace:workspace}:{})}); if(!result.ok) setAgentStatus(result.error,'error'); });
   document.getElementById('btn-start-agent').addEventListener('click', handleStartAgent);
   document.getElementById('btn-stop-agent').addEventListener('click', handleStopAgent);
   document.getElementById('btn-clear-output').addEventListener('click', () => {
@@ -407,6 +408,8 @@ function setupAgentListeners() {
   window.robos.onAgentStream(({ taskKey, text, stream }) => {
     if (selectedTask && selectedTask.key === taskKey) {
       appendOutput(text, stream);
+      const workspace=text.match(/\*\*Workspace:\*\*\s*`([^`]+)`/);if(workspace)document.getElementById('implementation-checkout').value=workspace[1];
+      if(agentRunning)setAgentStatus('Agent running · latest update '+new Date().toLocaleTimeString(),'running');
     }
   });
   window.robos.onAgentDone(({ taskKey, code }) => {
@@ -475,7 +478,7 @@ function appendOutput(text, stream) {
   const out = document.getElementById('agent-output');
   const span = document.createElement('span');
   span.className = stream === 'stderr' ? 'line-stderr' : 'line-stdout';
-  span.textContent = text;
+  span.textContent = text.endsWith('\n') ? text : text+'\n';
   out.appendChild(span);
   out.scrollTop = out.scrollHeight;
 }

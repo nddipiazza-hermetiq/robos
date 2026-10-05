@@ -23,3 +23,10 @@ test('AI selection is saved once, never converted to verified evidence',async()=
  const [a,b]=await Promise.all([planner.recommend(),planner.recommend()]);assert.deepEqual(a,b);assert.equal(a.source,'ai-recommendation');assert.equal(a.verified,undefined);assert.equal(planner.get().missing[0],'Live model exchange');
  assert.equal(readPlan({head:'new'},{directory}),null);
 });
+test('resolves task-implementer template references without accepting unknown IDs',()=>{
+ const {readPlan}=require('../../../pr-review/lib/evidence-plan');
+ const review={evidencePlan:{markdown:'Check connector',template:{id:'urn:robos:evidence-template:connector-setup:v1',name:'Connector setup'}}};
+ assert.equal(readPlan(review,null).template['@type'],'robos:EvidenceTemplate');
+ review.evidencePlan.template.id='urn:robos:evidence-template:unknown:v1';
+ assert.throws(()=>readPlan(review,null),/Unknown evidence template/);
+});
