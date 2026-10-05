@@ -1,12 +1,13 @@
 'use strict';
 window.mountWalkthrough = async function () {
   window.cleanupWalkthrough?.();
+  if(!document.getElementById('walkthrough-layout-css')){const css=document.createElement('link');css.id='walkthrough-layout-css';css.rel='stylesheet';css.href='walkthrough.css';document.head.append(css);}
   const stage = document.getElementById('stage-6');
   stage.replaceChildren(); stage.classList.add('walkthrough');
   const bar = document.createElement('div'); bar.className = 'walkthrough-bar';
-  const title = document.createElement('strong'); title.textContent = 'Walk me through it';
+  const title = document.createElement('strong'); title.textContent = 'Walkthrough';
   const badge = document.createElement('span'); badge.className = 'walkthrough-status';
-  const start = button('Start', 'Start the live walkthrough', () => act('start'));
+  const start = button('Start walkthrough', 'Start the live walkthrough', () => act('start'));
   const restart = button('Start over', 'Rerun setup and return to checkpoint 1; keep code changes and chat', () => act('restart'));
   const before = button('How it used to work', 'Demo the main branch in a separate checkout', () => act('before'));
   const feature = button('Show the change', 'Return to the feature branch walkthrough', () => act('feature'));
@@ -41,7 +42,7 @@ window.mountWalkthrough = async function () {
   function render(value){
     if(!value)return;state=value;const busy=value.status==='running';
     if(value.persistenceError)error.textContent=value.persistenceError;
-    resume.hidden=!value.restored||busy;
+    resume.hidden=!value.restored||busy||value.index<0;
     const stepIndex = (value.walkthroughStatus||value.status) === 'error' ? (value.failedIndex ?? Math.max(0, value.index)) : value.index;
     const lastStep = stepIndex >= value.total - 1;
     badge.textContent = value.reviewChatActive ? (value.index<0?'Walkthrough not started':`Step ${value.index+1} of ${value.total}`) : busy ? 'In progress' : value.status === 'paused' ? lastStep ? 'Walkthrough complete' : `Step ${value.index + 1} of ${value.total}` : (value.walkthroughStatus||value.status) === 'error' ? `Step ${stepIndex + 1} of ${value.total} · Check incomplete` : `Ready · ${value.total} ${value.total===1?'step':'steps'}`;
@@ -57,12 +58,28 @@ window.mountWalkthrough = async function () {
     retry.hidden = value.status !== 'error'; process.disabled = busy;
     checkpoint.replaceChildren();
     const c = value.checkpoint;
-    if (c) { const h = document.createElement('h3'); h.textContent = c.title; const p = document.createElement('p'); p.textContent = busy&&!value.reviewChatActive ? `I’m preparing “${c.title}”. I’ll show you what to try and pause when it’s ready.` : value.guidance || c.summary || 'Ask Explain for a walkthrough of this step, or try the app before moving on.'; checkpoint.append(h, p); if (value.baseline) { const note = document.createElement('small'); note.textContent = `Before the change · ${value.baseline.ref} · ${value.baseline.revision.slice(0, 8)}`; checkpoint.append(note); } }
-    else {
-      const intro=document.createElement('p');intro.textContent='Start the dev app and demonstrate one checkpoint at a time. You decide when we move on.';checkpoint.append(intro);
-      const list=document.createElement('ol');for(const step of value.process.checkpoints){const item=document.createElement('li');item.textContent=step.title;list.append(item);}checkpoint.append(list);
+    const heading=document.createElement('h2');heading.textContent=value.process.template?.name||'Review the change';checkpoint.append(heading);
+    if(value.process.template)heading.title=value.process.template.id;
+    const intro=document.createElement('p');intro.className='walkthrough-intro';intro.textContent='We’ll prepare the app, then pause at each step so you can try it yourself.';checkpoint.append(intro);
+    if(c){
+      const current=document.createElement('section');current.className='walkthrough-current';
+      const label=document.createElement('span');label.className='walkthrough-eyebrow';label.textContent=`CURRENT STEP · ${stepIndex+1} OF ${value.total}`;
+      const h=document.createElement('h3');h.textContent=c.title;
+      const p=document.createElement('p');p.textContent=busy&&!value.reviewChatActive?'Preparing this step…':value.guidance||c.when;
+      current.append(label,h,p);checkpoint.append(current);
+      if(value.baseline){const note=document.createElement('p');note.textContent=`Before the change · ${value.baseline.ref} · ${value.baseline.revision.slice(0,8)}`;checkpoint.append(note);}
     }
-    if(value.process.template){const name=document.createElement('p');name.textContent='Walkthrough template: '+value.process.template.name;name.title=value.process.template.id;checkpoint.prepend(name);}
+    const list=document.createElement('ol');list.className='walkthrough-steps';list.setAttribute('aria-label','Walkthrough steps');
+    const steps=value.mode==='before'?value.process.before.checkpoints:value.process.checkpoints;
+    steps.forEach((step,i)=>{
+      const item=document.createElement('li');
+      if(i===stepIndex)item.setAttribute('aria-current','step');
+      const number=document.createElement('span');number.className='walkthrough-step-number';number.textContent=String(i+1);number.setAttribute('aria-hidden','true');
+      const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent=step.title;
+      const body=document.createElement('dl');
+      for(const [label,text] of [['Before you start',step.given],['What to do',step.when],['What to check',step.then]]){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=text;body.append(dt,dd);}
+      details.append(summary,body);item.append(number,details);list.append(item);
+    });checkpoint.append(list);
     if ((value.walkthroughStatus||value.status) === 'error') { const reason = document.createElement('p'); reason.className = 'walkthrough-blocker'; reason.textContent = (value.messages.filter(m => m.kind !== 'progress' && m.role !== 'user').at(-1)?.text || 'This step could not be verified.') + (lastStep ? ' You can recheck or open Suggest Changes.' : ' Recheck this step, open Suggest Changes, or continue with this check marked unverified.'); checkpoint.append(reason); }
     if (value.status === 'paused' && lastStep) { const done = document.createElement('p'); done.textContent = 'You’ve reached the end of this walkthrough. Use Suggest Changes to request edits, or use More to start over. This does not approve or merge the PR.'; checkpoint.append(done); }
   }

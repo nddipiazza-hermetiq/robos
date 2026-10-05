@@ -1,0 +1,29 @@
+#stage-6.walkthrough{padding:28px 32px;overflow-y:auto}
+#stage-6 .walkthrough-bar,#stage-6 .walkthrough-checkpoint,#stage-6 .walkthrough-step-actions,#stage-6 .walkthrough-error{width:100%;max-width:960px;box-sizing:border-box;margin-left:auto;margin-right:auto}
+#stage-6 .walkthrough-bar{margin-bottom:24px;gap:16px;align-items:center}
+#stage-6 .walkthrough-bar>strong{font-size:14px;font-weight:600;color:#a9b7c6}
+#stage-6 .walkthrough-status{font-size:12px;color:#a9b7c6}
+#stage-6 .walkthrough-checkpoint{display:block;background:none;border:0;padding:0;border-radius:0}
+#stage-6 .walkthrough-checkpoint h2{font-size:24px;line-height:1.3;letter-spacing:-.3px;color:#edf2f7;margin:0 0 8px;font-weight:600}
+#stage-6 .walkthrough-intro{font-size:14px;line-height:1.6;color:#a9b7c6;margin:0 0 24px}
+#stage-6 .walkthrough-steps{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+#stage-6 .walkthrough-steps>li{display:flex;align-items:flex-start;gap:16px;padding:16px 18px;background:#121a23;border:1px solid #2b3744;border-radius:6px}
+#stage-6 .walkthrough-steps>li[aria-current]{border-color:#619dc2}
+#stage-6 .walkthrough-step-number{display:flex;align-items:center;justify-content:center;flex:0 0 28px;height:28px;border:1px solid #425266;border-radius:50%;font-size:12px;color:#b7c8d9;font-variant-numeric:tabular-nums}
+#stage-6 .walkthrough-steps details{flex:1;min-width:0}
+#stage-6 .walkthrough-steps summary{padding:4px 0;cursor:pointer;color:#e2e9f0;font-size:15px;line-height:1.4;font-weight:500}
+#stage-6 .walkthrough-steps summary::marker{color:#8396aa;font-size:11px}
+#stage-6 .walkthrough-steps dl{margin:18px 0 4px;max-width:76ch}
+#stage-6 .walkthrough-steps dt{font-size:12px;color:#c6d4e2;font-weight:600;margin-top:16px}
+#stage-6 .walkthrough-steps dd{margin:6px 0 0;color:#a9b7c6;font-size:14px;line-height:1.65;overflow-wrap:anywhere}
+#stage-6 .walkthrough-step-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;padding:0}
+#stage-6 .walkthrough-step-actions button{min-height:40px;padding:10px 16px;border-radius:5px;font-size:14px;white-space:normal;text-align:left}
+#stage-6 button.walkthrough-primary{background:#236482;border:1px solid #68a5c2;color:#fff}
+#stage-6 .walkthrough-current{border-left:3px solid #619dc2;padding:16px 20px;background:#141e29;margin:24px 0}
+#stage-6 .walkthrough-eyebrow{font-size:11px;color:#9cb2c7;letter-spacing:.8px}
+#stage-6 .walkthrough-current h3{margin:8px 0;font-size:18px}
+#stage-6 .walkthrough-current p{font-size:14px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+#stage-6 .walkthrough-error:empty{display:none}
+#stage-6 .walkthrough-blocker{padding:16px;border-left:3px solid #c39750;color:#dfc391;font-size:14px;line-height:1.6}
+#stage-6 summary:focus-visible,#stage-6 button:focus-visible{outline:2px solid #8cbfe1;outline-offset:4px}
+@media(max-width:900px){#stage-6.walkthrough{padding:20px}#stage-6 .walkthrough-checkpoint h2{font-size:21px}#stage-6 .walkthrough-steps>li{padding:14px;gap:12px}}
