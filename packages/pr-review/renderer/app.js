@@ -846,7 +846,7 @@ function renderTheaterChecksUI(checks, prUrl) {
   const failed = checks.filter(c => (c.state || '').toLowerCase() === 'failure' || (c.state || '').toLowerCase() === 'error').length;
   const pending = total - passed - failed;
 
-  const statusType = failed > 0 ? 'failure' : (pending > 0 ? 'pending' : 'success');
+  const statusType = failed > 0 ? 'failure' : (pending > 0 || total === 0 ? 'pending' : 'success');
 
   // Update button near logo
   const checksDot = document.getElementById('theater-checks-dot');
@@ -856,7 +856,7 @@ function renderTheaterChecksUI(checks, prUrl) {
   }
   const checksLabel = document.getElementById('theater-checks-label');
   if (checksLabel) {
-    checksLabel.textContent = `Checks (${passed}/${total})`;
+    checksLabel.textContent = total ? `Checks (${passed}/${total})` : 'No CI checks';
   }
 
   // Update metadata chip
@@ -866,7 +866,7 @@ function renderTheaterChecksUI(checks, prUrl) {
   }
   const metaText = document.getElementById('theater-ci-chip-text');
   if (metaText) {
-    metaText.textContent = statusType === 'success' ? `${passed}/${total} CI Checks Passing` :
+    metaText.textContent = total === 0 ? 'CI not run' : statusType === 'success' ? `${passed}/${total} CI Checks Passing` :
                            statusType === 'failure' ? `${failed} Check(s) Failed` : 'Checks Running...';
   }
 

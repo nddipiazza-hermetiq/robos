@@ -18,8 +18,8 @@ test('local manifest reads real committed diff and rejects shell commands',()=>{
  git(['init']);git(['config','user.name','Test']);git(['config','user.email','test@example.invalid']);
  fs.writeFileSync(path.join(dir,'app.txt'),'before\n');git(['add','app.txt']);git(['commit','-m','before']);
  fs.writeFileSync(path.join(dir,'app.txt'),'after\n');git(['add','app.txt']);git(['commit','-m','after']);
- const file=path.join(dir,'review.json');const config={workspace:dir,title:'Local change',baseRef:'HEAD~1'};
+ const file=path.join(dir,'review.json');const config={workspace:dir,title:'Local change',baseRef:'HEAD~1',task:{title:'Tracked task',url:'https://github.com/org/tracker/issues/142'}};
  fs.writeFileSync(file,JSON.stringify(config));const review=loadLocalReview(file);
- assert.match(review.diffPatch,/\+after/);assert.deepEqual(review.changedFiles,['app.txt']);assert.equal(review.pr.local,true);
+ assert.match(review.diffPatch,/\+after/);assert.deepEqual(review.changedFiles,['app.txt']);assert.equal(review.pr.local,true);assert.equal(review.pr.additions,1);assert.equal(review.pr.deletions,1);assert.equal(review.pr.workItems[0].url,config.task.url);
  fs.writeFileSync(file,JSON.stringify({...config,runner:{command:'echo unsafe',args:[]}}));assert.throws(()=>loadLocalReview(file),/absolute executable/);
 });

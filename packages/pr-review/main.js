@@ -558,9 +558,9 @@ ipcMain.handle('get-ide-status', async () => {
 ipcMain.handle('fetch-pr-theater-context', async (_, opts = {}) => {
   try {
     if (localReview) return {
-      ok: true, local: true, interactiveDemo: !!demoSession, pr: localReview.pr,
+      ok: true, local: true, interactiveDemo: !!demoSession, pr: localReview.pr, checks: [],
       targetApp: { title: localReview.title },
-      fileDiffs: getGraphStore()?.parseUnifiedDiff(localReview.diffPatch, localReview.changedFiles) || [],
+      fileDiffs: localReview.diffPatch.includes('@@') && SDLCKnowledgeGraphStore ? SDLCKnowledgeGraphStore.prototype.parseUnifiedDiff(localReview.diffPatch, localReview.changedFiles) : [],
       proofOfWorkVideo: { title: 'Recorded local evidence', url: localReview.videoUrl, chapters: [], vttTranscript: localReview.summary || '' },
       showTheFix: { fixType: 'frontend', frontendTarget: { description: localReview.showMeDescription || 'Run the configured local demonstration and leave its browser open for review.' } },
       theaterConfig: { stage1_elearning: { enabled: false, required: false, lockDiffsUntilPassed: false }, stage2_livingDocs: { enabled: false }, stage4_ideBridge: { enabled: false }, stage7_signOff: { enabled: false }, stage6_showTheFix: { required: true } },

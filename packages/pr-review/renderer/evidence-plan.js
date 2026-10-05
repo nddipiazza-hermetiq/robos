@@ -22,7 +22,7 @@ window.mountEvidencePlan=async function(){
   runStatus.textContent=run.status==='idle'?'No evidence run yet.':run.status+' — '+(run.summary||'Executing the evidence plan.');
   progress.replaceChildren();for(const update of run.progress||[]){const bubble=document.createElement('p');bubble.className='walkthrough-bubble assistant progress-entry';bubble.textContent=update.text;progress.append(bubble);}progress.scrollTop=progress.scrollHeight;
   results.replaceChildren();for(const scenario of run.scenarios||[]){const li=document.createElement('li');li.textContent=(scenario.title||scenario.id)+' · '+scenario.status+' — '+scenario.summary;results.append(li);}
-  for(const item of run.artifacts||[]){const li=document.createElement('li'),open=document.createElement('button');open.textContent=item.label;open.onclick=()=>window.api.openReviewEvidence(item.id);li.append(open);results.append(li);}
+  for(const item of run.artifacts||[]){const li=document.createElement('li'),open=document.createElement('button');open.textContent=item.label;open.onclick=()=>window.api.openReviewEvidence(item.id);li.append(open);if(/\.(png|jpe?g|webp)$/i.test(item.path||'')){const img=document.createElement('img');img.src='robos-evidence://screenshot/'+item.id;img.alt=item.label;img.loading='lazy';img.style.cssText='display:block;max-width:100%;max-height:520px;margin:12px 0;border:1px solid #30363d';li.append(img);}results.append(li);}
 
  }
  generate.onclick=async()=>{generate.disabled=true;try{const r=await window.api.generateReviewEvidence();if(!r.ok)throw Error(r.error);await renderRun(r.state);}catch(e){runStatus.textContent=e.message;generate.disabled=false;}};

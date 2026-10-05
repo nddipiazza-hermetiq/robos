@@ -15,11 +15,13 @@ function loadLocalReview(file) {
   const base = git(['rev-parse', '--verify', config.baseRef + '^{commit}']).trim();
   const head = git(['rev-parse', 'HEAD']).trim();
   const diffPatch = git(['diff', base, head, '--']);
+  const counts = git(['diff', '--numstat', base, head, '--']).trim().split('\n').reduce((sum,line)=>{const [added,removed]=line.split('\t');sum.additions+=Number(added)||0;sum.deletions+=Number(removed)||0;return sum;},{additions:0,deletions:0});
+  const workItems=config.task?.url ? [{key:'#'+config.task.url.split('/').pop(),title:config.task.title,url:config.task.url,type:'github'}] : [];
   const changedFiles = git(['diff', '--name-only', base, head, '--']).trim().split('\n').filter(Boolean);
   if (config.runner && (!path.isAbsolute(config.runner.command || '') || !Array.isArray(config.runner.args))) throw new Error('Runner requires an absolute executable and argument array');
   return { ...config, base, head, diffPatch, changedFiles,
     videoUrl: config.videoPath ? pathToFileURL(fs.realpathSync(config.videoPath)).href : null,
-    pr: { local: true, published: !!config.pullRequest, number: config.pullRequest?.number || 'local', url: config.pullRequest?.url, repo: config.repo || 'Local workspace', title: config.pullRequest?.title || config.title, headBranch: git(['branch', '--show-current']).trim(), baseBranch: (config.baseBranch || config.baseRef).replace(/^origin\//, ''), body: config.pullRequest?.body ?? config.summary ?? '', changedFiles }
+    pr: { ...counts, workItems, local: true, published: !!config.pullRequest, number: config.pullRequest?.number || 'local', url: config.pullRequest?.url, repo: config.repo || 'Local workspace', title: config.pullRequest?.title || config.title, headBranch: git(['branch', '--show-current']).trim(), baseBranch: (config.baseBranch || config.baseRef).replace(/^origin\//, ''), body: config.pullRequest?.body ?? config.summary ?? '', changedFiles }
   };
 }
 
