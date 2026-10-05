@@ -3,7 +3,8 @@ window.mountEvidencePlan=async function(){
  let panel=document.getElementById('task-evidence-plan');if(panel)return;
  panel=document.createElement('section');panel.id='task-evidence-plan';panel.className='task-evidence';
  const stage=document.getElementById('stage-5');
- const intro=stage.querySelector('.stage-header p');if(intro)intro.textContent='Review the chosen proof, captured artifacts, and checks still needed.';
+ // The task evidence panel supplies its own heading and controls.
+ stage.querySelector('.stage-header')?.remove();
  for(const el of stage.querySelectorAll('.stage-badge-wrap,.canvas-mode-bar,#canvas-desktop-view')){el.hidden=true;el.style.display='none';}
  stage.prepend(panel);
  function el(tag, className, text){const node=document.createElement(tag);if(className)node.className=className;if(text)node.textContent=text;return node;}
