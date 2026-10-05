@@ -12,3 +12,13 @@ test('catalog includes all supplied roots, deep images, reports, indexed compari
  const proof=evidenceFor({evidenceRoots:[a,path.join(root,'proof-b'),a]},store);
  assert.equal(proof.evidence.filter(e=>e.kind==='screenshot').length,2);assert.equal(proof.evidence.find(e=>e.path===before).side,'before');assert.equal(proof.evidence.find(e=>e.path===after).revision,'def');assert.ok(proof.evidence.some(e=>e.path.endsWith('results.log')));assert.equal(proof.reviewNotes.length,135);assert.equal(proof.reviewNotes[0].text,'Checkpoint note 0');
 });
+
+test('run checkouts are not traversed; indexed run artifacts remain available',()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'review-run-inventory-'));
+ const run=path.join(root,'evidence','runs','run-id');fs.mkdirSync(run,{recursive:true});
+ const recorded=path.join(run,'response.json');fs.writeFileSync(recorded,'{}');
+ fs.writeFileSync(path.join(run,'unregistered-source.json'),'{}');
+ registerScreenshot({directory:root},{path:recorded,label:'Actual response'});
+ const original=fs.readdirSync;fs.readdirSync=function(dir,...args){assert.ok(!String(dir).includes(path.sep+'runs'),'must not scan generated run trees');return original.call(this,dir,...args);};
+ try{const proof=evidenceFor({},{directory:root});assert.ok(proof.evidence.some(e=>e.path===recorded));assert.ok(!proof.evidence.some(e=>e.path.endsWith('unregistered-source.json')));}finally{fs.readdirSync=original;}
+});

@@ -21,20 +21,20 @@ window.mountEvidencePlan=async function(){
   if(!run)return;generate.disabled=run.status==='running';generate.textContent=run.status==='running'?'Generating evidence…':'Generate evidence';
   runStatus.textContent=run.status==='idle'?'No evidence run yet.':run.status+' — '+(run.summary||'Executing the evidence plan.');
   progress.replaceChildren();for(const update of run.progress||[]){const bubble=document.createElement('p');bubble.className='walkthrough-bubble assistant progress-entry';bubble.textContent=update.text;progress.append(bubble);}progress.scrollTop=progress.scrollHeight;
-  results.replaceChildren();for(const scenario of run.scenarios||[]){const li=document.createElement('li');li.textContent=scenario.id+' · '+scenario.status+' — '+scenario.summary;results.append(li);}
-  if(run.directory){const inventory=await window.api.evidencePlan(false);const known=new Set((run.artifacts||[]).map(a=>a.path));const items=(inventory.inventory||[]).filter(item=>known.has(item.path)||(run.status==='running'&&item.path?.startsWith(run.directory+'/')&&!/\/(result(?:\.schema)?\.json)$/.test(item.path)&&!/(?:candidate|baseline|checkout|node_modules|src|public)\//.test(item.path.slice(run.directory.length))&&/(?:commands\.txt|transcript|response|results|stdout|stderr|output|\.log$|\.png$|\.webm$)/i.test(item.path.slice(run.directory.length))));for(const item of items){const li=document.createElement('li'),open=document.createElement('button');open.textContent=item.label;open.onclick=()=>window.api.openReviewEvidence(item.id);li.append(open,document.createTextNode(known.has(item.path)?'':' — run output; verification pending'));results.append(li);}}
+  results.replaceChildren();for(const scenario of run.scenarios||[]){const li=document.createElement('li');li.textContent=(scenario.title||scenario.id)+' · '+scenario.status+' — '+scenario.summary;results.append(li);}
+  for(const item of run.artifacts||[]){const li=document.createElement('li'),open=document.createElement('button');open.textContent=item.label;open.onclick=()=>window.api.openReviewEvidence(item.id);li.append(open);results.append(li);}
 
  }
  generate.onclick=async()=>{generate.disabled=true;try{const r=await window.api.generateReviewEvidence();if(!r.ok)throw Error(r.error);await renderRun(r.state);}catch(e){runStatus.textContent=e.message;generate.disabled=false;}};
- window.cleanupEvidenceRun?.();let rendering=false;const refresh=async()=>{if(rendering)return;rendering=true;try{await renderRun(await window.api.evidenceRunState?.());}finally{rendering=false;}};const unsubscribe=window.api.onEvidenceRunState?.(()=>refresh());const timer=setInterval(refresh,5000);window.cleanupEvidenceRun=()=>{clearInterval(timer);unsubscribe?.();};
+ window.cleanupEvidenceRun?.();const unsubscribe=window.api.onEvidenceRunState?.(renderRun);window.cleanupEvidenceRun=()=>unsubscribe?.();
  window.api.evidenceRunState?.().then(renderRun);
 
  const viewers=[];
  function renderPlan(markdown){
   for(const viewer of viewers.splice(0))viewer.destroy();body.replaceChildren();
-  const parts=String(markdown).split(/(?=^###? M\d{2}\b)/m);
+  const parts=String(markdown).split(/(?=^### [^\n]+)/m);
   for(const [i,part] of parts.entries()){
-   const heading=part.match(/^###? (M\d{2}[^\n]*)/);const details=document.createElement('details');details.className='evidence-scenario-plan';
+   const heading=part.match(/^### ([^\n]*)/);const details=document.createElement('details');details.className='evidence-scenario-plan';
    const summary=document.createElement('summary');summary.textContent=heading?heading[1]:'Scope, baseline and data';details.append(summary);
    const content=document.createElement('div');content.className='evidence-markdown';details.append(content);body.append(details);
    const text=(heading?part.slice(heading[0].length):part).replace(/^## Evidence plan\s*$/gm,'').trim();
