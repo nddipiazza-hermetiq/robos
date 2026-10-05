@@ -18,7 +18,7 @@ test('missing configured agent fails visibly instead of producing invented evide
 });
 test('AI selection is saved once, never converted to verified evidence',async()=>{
  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'evidence-run-'));const script=path.join(directory,'agent');
- fs.writeFileSync(script,'#!/usr/bin/env node\nconst fs=require("fs");const out=process.argv[process.argv.indexOf("--output-last-message")+1];process.stdin.resume();process.stdin.on("end",()=>fs.writeFileSync(out,JSON.stringify({markdown:"M05: compare actual MCP calls.",selectedEvidence:[],missing:["Live model exchange"]})));',{mode:0o700});
+ fs.writeFileSync(script,'#!/usr/bin/env node\nconst fs=require("fs");const out=process.argv[process.argv.indexOf("--output-last-message")+1];process.stdin.resume();process.stdin.on("end",()=>fs.writeFileSync(out,JSON.stringify({templateId:"urn:robos:evidence-template:mcp-response:v1",newTemplateJson:"",markdown:"M05: compare actual MCP calls.",selectedEvidence:[],missing:["Live model exchange"]})));',{mode:0o700});
  const planner=new EvidencePlanner({workspace:directory,head:'abc',title:'M05',demoAgent:{command:script,args:['exec'],timeoutMs:2000}},{directory});
  const [a,b]=await Promise.all([planner.recommend(),planner.recommend()]);assert.deepEqual(a,b);assert.equal(a.source,'ai-recommendation');assert.equal(a.verified,undefined);assert.equal(planner.get().missing[0],'Live model exchange');
  assert.equal(readPlan({head:'new'},{directory}),null);

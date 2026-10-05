@@ -70,7 +70,14 @@ window.mountEvidencePlan=async function(){
    for(const item of items){const row=el('article','evidence-check '+tone);row.append(el('span','evidence-check-badge',tone==='pending'?'Pending':tone==='failed'?'Failed':'Passed'));const copy=el('div');copy.append(el('h5','',item.title||item.id),el('p','',item.summary||''));row.append(copy);section.append(row);}results.append(section);
   }
   progress.replaceChildren();for(const update of run.progress||[]){progress.append(el('p','walkthrough-bubble assistant progress-entry',update.text));}progressDetails.hidden=!progress.childElementCount;progressDetails.open=running;progress.scrollTop=progress.scrollHeight;
-  artifacts.replaceChildren();if(run.artifacts?.length){artifacts.append(el('h4','','Captured evidence'),el('p','evidence-help','Open a screenshot or read the original output.'));for(const item of run.artifacts)artifacts.append(artifactRow(item));}
+  artifacts.replaceChildren();
+  if(run.template){
+   const tag=run.template['robos:webElement'];
+   if(['robos-evidence-transcript','robos-evidence-gallery','robos-evidence-checks'].includes(tag)&&customElements.get(tag)){
+    const view=document.createElement(tag);view.readArtifact=id=>window.api.readReviewEvidence(id);view.evidence=run;view.addEventListener('evidence-open',event=>{const item=run.artifacts?.find(a=>a.id===event.detail.id);if(item)showArtifact(item);});artifacts.append(view);
+    const used=new Set((run.templateBindings||[]).map(b=>b.artifactId));const other=(run.artifacts||[]).filter(a=>!used.has(a.id));if(other.length){const details=el('details','evidence-references');details.append(el('summary','','Other captured files'));for(const item of other)details.append(artifactRow(item));artifacts.append(details);}
+   }else artifacts.append(el('p','evidence-error','This evidence template needs a web component that is not installed.'));
+  }else if(run.artifacts?.length){artifacts.append(el('h4','','Captured evidence'),el('p','evidence-help','Open a screenshot or read the original output.'));for(const item of run.artifacts)artifacts.append(artifactRow(item));}
  }
  generate.onclick=async()=>{generate.disabled=true;try{const r=await window.api.generateReviewEvidence();if(!r.ok)throw Error(r.error);await renderRun(r.state);}catch(e){runStatus.textContent=e.message;generate.disabled=false;}};
  window.cleanupEvidenceRun?.();const unsubscribe=window.api.onEvidenceRunState?.(renderRun);window.cleanupEvidenceRun=()=>unsubscribe?.();
@@ -99,7 +106,7 @@ window.mountEvidencePlan=async function(){
    const selected=new Set(plan.selectedEvidence||[]);
    for(const item of result.inventory.filter(e=>selected.has(e.id))){const li=document.createElement('li');const open=document.createElement('button');open.textContent=item.label;open.onclick=async()=>{const r=await window.api.openReviewEvidence(item.id);if(!r.ok)status.textContent=r.error;};li.append(open,document.createTextNode(' — '+(item.verified===true?'recorded as verified':'verification not recorded')));list.append(li);}
    for(const missing of plan.missing||[]){const li=document.createElement('li');li.textContent='Still needed: '+missing;list.append(li);}
-   retry.hidden=true;const running=await window.api.evidenceRunState?.();generate.disabled=running?.status==='running';
+   retry.hidden=true;const running=await window.api.evidenceRunState?.();generate.disabled=running?.status==='running';if(plan.template)await renderRun({...running,status:running?.status||'idle',template:running?.template||plan.template});
   }catch(e){status.textContent=e.message;retry.hidden=false;}finally{retry.disabled=false;}
  }
  retry.onclick=()=>load(true);await load();

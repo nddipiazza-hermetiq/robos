@@ -5,6 +5,7 @@ function evidenceFor(review,store){
   const evidence=[],seen=new Set(),sources=[],limits=[];
   const add=item=>{if(!item||typeof item!=='object')return;const key=item.path||item.url;if(!key||seen.has(key))return;seen.add(key);evidence.push({id:createHash('sha256').update(key).digest('hex').slice(0,16),...item,label:String(item.label||path.basename(key)),kind:item.kind||kindFor(key)||'report'});};
   for(const item of review.evidence||[])add(item);
+  if(review.evidenceBundlePath){try{for(const item of require('../../robos-lib/evidence-bundle').readBundle(review.evidenceBundlePath,review.head).artifacts)add(item);}catch(e){limits.push('Could not load task evidence bundle: '+e.message);}}
   const readIndex=file=>{try{const c=JSON.parse(fs.readFileSync(file,'utf8'));sources.push(file);for(const item of c.evidence||[])add(item);}catch(e){if(e.code!=='ENOENT')limits.push(`Could not read evidence index: ${file}`);}};
   if(store?.directory)readIndex(path.join(store.directory,'evidence','index.json'));
   for(const file of review.evidenceIndexes||[])readIndex(file);

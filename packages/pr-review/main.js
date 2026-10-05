@@ -36,7 +36,7 @@ ipcMain.handle('generate-review-evidence',async()=>{try{
  if(!evidenceRunner)throw Error('Open a local review first.');
  if(demoSession?.status==='running'||reviewPublisher?.pending||prState?.pending)throw Error('Finish the current review action before generating evidence.');
  if(localReview.pullRequest)await prState.assertAuthor();
- const plan=evidencePlanner.get()||await evidencePlanner.recommend();
+ let plan=evidencePlanner.get();if(!plan?.template)plan=await evidencePlanner.recommend();
  return {ok:true,state:evidenceRunner.start(plan)};
 }catch(e){return {ok:false,error:e.message};}});
 evidenceRunner?.on('state',state=>{for(const window of BrowserWindow.getAllWindows())window.webContents.send('review-evidence-run-state',state);});

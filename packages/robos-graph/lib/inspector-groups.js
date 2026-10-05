@@ -24,6 +24,7 @@
   // Document paths/slug/body belong to the standard Documentation view; only
   // recorded structure/code/diagram metadata or decision fields create groups.
   const GROUPS = [
+    {id:'evidence-template',label:'Evidence template',types:['robos:EvidenceTemplate'],properties:['robos:version','robos:webElement','robos:artifactSlots','robos:collectionInstructions'],incoming:['robos:evidenceTemplate']},
     {
       "id": "mcp-server",
       "label": "MCP Server",

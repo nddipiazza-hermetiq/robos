@@ -104,3 +104,25 @@ sequenceDiagram
 | **Backend Systems Developer** | `urn:robos:agent:backend-dev` | `headless` | Java 21 / Spring Boot 3, Node.js / Fastify, OpenAPI 3.1, gRPC Protobuf |
 | **Data & Storage Engineer** | `urn:robos:agent:data-engineer-dev` | `headless` | PostgreSQL schemas, Flyway versioned migrations, Kafka event streaming |
 | **DevOps & Cloud Engineer** | `urn:robos:agent:devops-engineer` | `headless` | Kubernetes manifests, Helm charts, ArgoCD GitOps, CI/CD pipelines |
+
+## Evidence generated during implementation
+
+Task Implementer chooses a reusable `robos:EvidenceTemplate` before collecting
+proof. It uses the task's evidence plan and acceptance criteria to pick the
+appropriate template. If none fits, the agent registers a new named template
+with a versioned ID, artifact slots, collection instructions, and a RobOS web
+component. Templates contain data, not executable HTML or JavaScript.
+
+The agent runs the checks, captures their outputs, and binds each artifact to a
+slot. A required slot without an artifact keeps that scenario unverified. The
+handoff states **Evidence template used for this task: {name} ({ID})** and points
+to the populated bundle. Choosing a template alone does not finish the task.
+
+Delivery files live under `.robos/task-evidence/<task-identity-hash>/` in the
+implementation checkout: `template.json`, `evidence-plan.json`, `result.json`,
+and `bundle.json`. Opening local review discovers them automatically. The
+review theater renders the selected template's web component and captured
+artifacts. It flags changed/missing artifacts and evidence from another commit.
+
+See [Evidence templates]({{ site.baseurl }}/evidence-templates.html) for the schema
+and commands used by implementation agents.

@@ -55,3 +55,10 @@ captured files inside the review. Text previews show the original content,
 limited to the first 256 KB, with an option to open the full file in another app.
 The evidence plan and earlier artifacts remain in expandable sections below
 current results.
+
+Task Implementer hands the theater a populated `robos:EvidenceTemplate` and its
+artifact bindings. The tab displays **Evidence template used for this task**,
+the template name, and its chosen web component. Text outputs appear directly
+in their slots; screenshots retain their before/after labels. Missing required
+slots remain visible. Older reviews without templates still show their files;
+the next generation run asks the agent to choose a template first.

@@ -291,6 +291,7 @@ ipcMain.handle('start-agent', (event, { taskKey, task, extraContext, persona, cu
   const child = cp.spawn('claude', [
     '-p', prompt,
     '--output-format', 'stream-json',
+    '--verbose',
     '--dangerously-skip-permissions',
   ], { encoding: 'utf8', env: childEnv });
 
