@@ -6,6 +6,9 @@
  */
 'use strict';
 
+const {createDefaultWorkflow} = require('../robos-lib/default-workflow');
+const defaultStages = () => createDefaultWorkflow('task').states.map(state => state.id);
+
 const WORK_ITEM_TYPES = {
   release: {
     id: 'release',
@@ -20,7 +23,7 @@ const WORK_ITEM_TYPES = {
     icon: '⚡',
     allowedChildren: ['story', 'bug'],
     allowedParents: ['release'],
-    defaultWorkflow: ['draft', 'ready', 'in_progress', 'done'],
+    defaultWorkflow: defaultStages(),
   },
   story: {
     id: 'story',
@@ -28,7 +31,7 @@ const WORK_ITEM_TYPES = {
     icon: '📋',
     allowedChildren: [],
     allowedParents: ['epic'],
-    defaultWorkflow: ['backlog', 'in_progress', 'in_review', 'approved', 'deploying', 'deployed'],
+    defaultWorkflow: defaultStages(),
   },
   bug: {
     id: 'bug',
@@ -36,7 +39,7 @@ const WORK_ITEM_TYPES = {
     icon: '🐛',
     allowedChildren: [],
     allowedParents: ['epic'],
-    defaultWorkflow: ['triage', 'in_progress', 'in_review', 'approved', 'deploying', 'deployed'],
+    defaultWorkflow: defaultStages(),
   },
 };
 
@@ -115,7 +118,7 @@ function detectWorkItemType(issueType, labels = []) {
 function statusBucket(statusCategory) {
   const cat = (statusCategory || '').toLowerCase();
   if (['done', 'deployed', 'released', 'closed', 'resolved'].includes(cat)) return 'done';
-  if (['indeterminate', 'in_progress', 'in_review', 'deploying'].includes(cat)) return 'in_progress';
+  if (['indeterminate', 'in_progress', 'in_review', 'deploying', 'agent-implementing', 'local-evidence-review', 'draft-pr-pipeline-review', 'human-review'].includes(cat)) return 'in_progress';
   return 'todo';
 }
 

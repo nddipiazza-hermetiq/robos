@@ -73,6 +73,10 @@
     "robos:protocolReference": {
       "@id": "robos:protocolReference",
       "@type": "@id"
+    },
+    "robos:workflowDefinition": {
+      "@id": "robos:workflowDefinition",
+      "@type": "@json"
     }
   },
   "@id": "urn:robos:package:organization",
@@ -711,6 +715,149 @@
       "robos:namespace": "robos.org",
       "robos:schemaOrgType": "https://schema.org/Person",
       "robos:domainStandard": "https://schema.org/Person"
+    },
+    {
+      "@id": "urn:robos:workflow:default-sdlc",
+      "@type": "schema:CreativeWork",
+      "dcterms:title": "Default development workflow",
+      "dcterms:description": "Design, implement, review local evidence, validate a draft PR, then request human review. Closed reflects actual issue closure; CI failure stays in the current stage.",
+      "robos:package": "organization",
+      "robos:isDefault": true,
+      "robos:workflowDefinition": {
+        "id": "robos-default-sdlc",
+        "name": "Default development workflow",
+        "description": "Design, implement, review local evidence, validate a draft PR, then request human review. Closed reflects actual issue closure; CI failure stays in the current stage.",
+        "states": [
+          {
+            "id": "not-started",
+            "label": "Not started",
+            "color": "#8b949e",
+            "agent_phases": [
+              "new",
+              "planning",
+              "planning-agent",
+              "plan-review"
+            ],
+            "is_initial": true,
+            "is_final": false
+          },
+          {
+            "id": "designed",
+            "label": "Designed",
+            "color": "#58a6ff",
+            "agent_phases": [
+              "plan-approved"
+            ],
+            "is_initial": false,
+            "is_final": false
+          },
+          {
+            "id": "agent-implementing",
+            "label": "Agent implementing",
+            "color": "#a371f7",
+            "agent_phases": [
+              "implementing"
+            ],
+            "is_initial": false,
+            "is_final": false
+          },
+          {
+            "id": "local-evidence-review",
+            "label": "Local evidence review",
+            "color": "#d29922",
+            "agent_phases": [
+              "local-review"
+            ],
+            "is_initial": false,
+            "is_final": false
+          },
+          {
+            "id": "draft-pr-pipeline-review",
+            "label": "Draft PR pipeline review",
+            "color": "#db8b54",
+            "agent_phases": [
+              "checking-pr"
+            ],
+            "is_initial": false,
+            "is_final": false
+          },
+          {
+            "id": "human-review",
+            "label": "Human review",
+            "color": "#58a6ff",
+            "agent_phases": [
+              "review"
+            ],
+            "is_initial": false,
+            "is_final": false
+          },
+          {
+            "id": "closed",
+            "label": "Closed",
+            "color": "#3fb950",
+            "agent_phases": [
+              "merged",
+              "complete"
+            ],
+            "is_initial": false,
+            "is_final": true
+          }
+        ],
+        "transitions": [
+          {
+            "from": "not-started",
+            "to": "designed"
+          },
+          {
+            "from": "designed",
+            "to": "agent-implementing"
+          },
+          {
+            "from": "agent-implementing",
+            "to": "local-evidence-review"
+          },
+          {
+            "from": "local-evidence-review",
+            "to": "draft-pr-pipeline-review"
+          },
+          {
+            "from": "draft-pr-pipeline-review",
+            "to": "human-review"
+          },
+          {
+            "from": "human-review",
+            "to": "closed"
+          },
+          {
+            "from": "local-evidence-review",
+            "to": "agent-implementing"
+          },
+          {
+            "from": "draft-pr-pipeline-review",
+            "to": "agent-implementing"
+          },
+          {
+            "from": "human-review",
+            "to": "agent-implementing"
+          },
+          {
+            "from": "designed",
+            "to": "not-started"
+          },
+          {
+            "from": "agent-implementing",
+            "to": "designed"
+          },
+          {
+            "from": "human-review",
+            "to": "draft-pr-pipeline-review"
+          },
+          {
+            "from": "closed",
+            "to": "not-started"
+          }
+        ]
+      }
     }
   ],
   "@graph": [

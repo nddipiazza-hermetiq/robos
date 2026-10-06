@@ -2,6 +2,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('robos', {
+  createDefaultWorkflow: (typeId, name) => require('../robos-lib/default-workflow').createDefaultWorkflow(typeId, name),
   readSettings:    ()      => ipcRenderer.invoke('read-settings'),
   writeSettings:   (data)  => ipcRenderer.invoke('write-settings', data),
   fetchIssue:      (args)  => ipcRenderer.invoke('fetch-issue', args),

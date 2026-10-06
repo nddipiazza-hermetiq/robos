@@ -491,14 +491,7 @@ async function initConfig() {
     if (!ts.workflows)   ts.workflows   = [];
     const id = 'custom-' + Date.now();
     ts.issue_types.push({ id, label: 'New Type', color: '#8b949e' });
-    ts.workflows.push({
-      id: id + '-workflow', name: 'New Type Workflow', type_id: id,
-      states: [
-        { id: 'open',  label: 'Open',  color: '#8b949e', is_initial: true, on_enter_script: '', on_enter_prompt: '' },
-        { id: 'done',  label: 'Done',  color: '#3fb950', on_enter_script: '', on_enter_prompt: '' },
-      ],
-      transitions: [{ from: 'open', to: 'done' }],
-    });
+    ts.workflows.push(robos.createDefaultWorkflow(id, 'New Type Workflow'));
     renderConfigTypes(ts);
     markDirty();
   };
